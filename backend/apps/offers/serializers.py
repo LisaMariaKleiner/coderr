@@ -1,0 +1,215 @@
+from rest_framework import serializers
+from .models import Offer, OfferDetail
+
+class OfferRetrieveReferenceDetailSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/api/offerdetails/{obj.id}/')
+        return f'/api/offerdetails/{obj.id}/'
+
+class OfferRetrieveFullSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
+    details = OfferRetrieveReferenceDetailSerializer(many=True, read_only=True)
+    min_price = serializers.SerializerMethodField()
+    min_delivery_time = serializers.SerializerMethodField()
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
+            'details', 'min_price', 'min_delivery_time'
+        ]
+
+    def get_min_price(self, obj):
+        return min([d.price for d in obj.details.all()]) if obj.details.exists() else None
+
+    def get_min_delivery_time(self, obj):
+        return min([d.delivery_time_in_days for d in obj.details.all()]) if obj.details.exists() else None
+
+class OfferRetrieveDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        read_only_fields = ['id']
+
+class OfferRetrieveSerializer(serializers.ModelSerializer):
+    details = OfferRetrieveDetailSerializer(many=True)
+    class Meta:
+        model = Offer
+        fields = ['id', 'title', 'image', 'description', 'details']
+        read_only_fields = ['id', 'details']
+class OfferDetailUpdateSerializer(serializers.ModelSerializer):
+    price = serializers.FloatField()
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        read_only_fields = ['id']
+
+class OfferUpdateSerializer(serializers.ModelSerializer):
+    details = OfferDetailUpdateSerializer(many=True)
+
+    class Meta:
+        model = Offer
+        fields = ['id', 'title', 'image', 'description', 'details']
+        read_only_fields = ['id']
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if details_data is not None:
+            existing_details = {d.id: d for d in instance.details.all()}
+            sent_ids = set()
+            for detail in details_data:
+                detail_id = detail.get('id', None)
+                if detail_id and detail_id in existing_details:
+                    detail_instance = existing_details[detail_id]
+                    for attr, value in detail.items():
+                        if attr != 'id':
+                            setattr(detail_instance, attr, value)
+                    detail_instance.save()
+                    sent_ids.add(detail_id)
+                else:
+                    OfferDetail.objects.create(offer=instance, **detail)
+            for detail_id, detail_instance in existing_details.items():
+                if detail_id not in sent_ids:
+                    detail_instance.delete()
+
+        return instance
+
+
+
+
+class OfferDetailReferenceSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'url']
+
+    def get_url(self, obj):
+        return f"/offerdetails/{obj.id}/"
+
+class OfferListSerializer(serializers.ModelSerializer):
+
+    user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
+    details = OfferDetailReferenceSerializer(many=True, read_only=True)
+    user_details = serializers.SerializerMethodField()
+    min_price = serializers.SerializerMethodField(read_only=True)
+    min_delivery_time = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
+            'details', 'min_price', 'min_delivery_time', 'user_details'
+        ]
+
+    def get_user_details(self, obj):
+        user = obj.business_user
+        return {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'username': user.username
+        } if user else None
+
+    def get_min_price(self, obj):
+        prices = obj.details.values_list('price', flat=True)
+        return min(prices) if prices else None
+
+    def get_min_delivery_time(self, obj):
+        times = obj.details.values_list('delivery_time_in_days', flat=True)
+        return min(times) if times else None
+
+
+
+
+
+class OfferDetailCompactSerializer(serializers.ModelSerializer):
+    price = serializers.FloatField()
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        read_only_fields = ['id']
+
+class OfferDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfferDetail
+        fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
+        read_only_fields = ['id']
+
+
+
+
+class OfferCompactSerializer(serializers.ModelSerializer):
+    details = OfferDetailCompactSerializer(many=True)
+    class Meta:
+        model = Offer
+        fields = ['id', 'title', 'image', 'description', 'details']
+        read_only_fields = ['id', 'details']
+
+
+class OfferSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
+    details = OfferDetailSerializer(many=True)
+    min_price = serializers.SerializerMethodField(read_only=True)
+    min_delivery_time = serializers.SerializerMethodField(read_only=True)
+
+
+    class Meta:
+        model = Offer
+        fields = [
+            'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
+            'details', 'min_price', 'min_delivery_time'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'details', 'min_price', 'min_delivery_time']
+
+    def create(self, validated_data):
+        details_data = validated_data.pop('details', [])
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['business_user'] = request.user
+        offer = Offer.objects.create(**validated_data)
+        for detail_data in details_data:
+            OfferDetail.objects.create(offer=offer, **detail_data)
+        return offer
+
+    def get_min_price(self, obj):
+        prices = obj.details.values_list('price', flat=True)
+        return min(prices) if prices else None
+
+    def get_min_delivery_time(self, obj):
+        times = obj.details.values_list('delivery_time_in_days', flat=True)
+        return min(times) if times else None
+
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if details_data is not None:
+            existing_details = {d.id: d for d in instance.details.all()}
+            sent_ids = set()
+            for detail in details_data:
+                detail_id = detail.get('id', None)
+                if detail_id and detail_id in existing_details:
+                    detail_instance = existing_details[detail_id]
+                    for attr, value in detail.items():
+                        if attr != 'id':
+                            setattr(detail_instance, attr, value)
+                    detail_instance.save()
+                    sent_ids.add(detail_id)
+                else:
+                    OfferDetail.objects.create(offer=instance, **detail)
+            for detail_id, detail_instance in existing_details.items():
+                if detail_id not in sent_ids:
+                    detail_instance.delete()
+
+        return instance
