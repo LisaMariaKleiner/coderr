@@ -62,7 +62,6 @@ class BusinessProfileListSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Ensure empty strings instead of null
         data['first_name'] = data.get('first_name') or ''
         data['last_name'] = data.get('last_name') or ''
         data['location'] = data.get('location') or ''
@@ -91,7 +90,6 @@ class CustomerProfileListSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Ensure empty strings instead of null
         data['first_name'] = data.get('first_name') or ''
         data['last_name'] = data.get('last_name') or ''
         return data
@@ -132,29 +130,23 @@ class ProfileDetailSerializer(serializers.Serializer):
         else:
             profile = getattr(instance, 'customer_profile', None)
 
-        # Basis-Felder zuerst
         data = {
             'user': instance.id,
             'username': instance.username,
         }
 
-        # first_name und last_name kommen aus unterschiedlichen Quellen
         if instance.user_type == 'customer' and profile:
-            # Bei Customer aus dem Profile
             data['first_name'] = profile.first_name or ''
             data['last_name'] = profile.last_name or ''
         else:
-            # Bei Business aus dem User-Model
             data['first_name'] = instance.first_name or ''
             data['last_name'] = instance.last_name or ''
 
-        # File
         if profile:
             data['file'] = profile.profile_image.url if profile.profile_image else None
         else:
             data['file'] = None
 
-        # Business-spezifische Felder in der richtigen Reihenfolge
         if instance.user_type == 'business':
             if profile:
                 data['location'] = profile.location or ''
@@ -167,12 +159,10 @@ class ProfileDetailSerializer(serializers.Serializer):
                 data['description'] = ''
                 data['working_hours'] = ''
             
-            # Type, Email, Created_at am Ende
             data['type'] = instance.user_type
             data['email'] = instance.email
             data['created_at'] = instance.date_joined.isoformat() if hasattr(instance, 'date_joined') else instance.created_at.isoformat()
         else:
-            # Customer hat nur type am Ende
             data['type'] = instance.user_type
 
         return data
@@ -183,17 +173,14 @@ class ProfileUpdateSerializer(serializers.Serializer):
     Unified Profile Update Serializer for PATCH /api/profile/{pk}/
     Handles both customer and business profiles with unified field names
     """
-    # User fields
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False)
     
-    # Unified profile fields (mapped to different models)
     location = serializers.CharField(required=False, allow_blank=True)
     tel = serializers.CharField(required=False, allow_blank=True)
     file = serializers.ImageField(required=False, allow_null=True)
     
-    # Business-specific fields
     description = serializers.CharField(required=False, allow_blank=True)
     working_hours = serializers.CharField(required=False, allow_blank=True)
 
@@ -204,7 +191,6 @@ class ProfileUpdateSerializer(serializers.Serializer):
         """
         user = instance
         
-        # Update User model fields (Django's built-in first_name, last_name)
         if 'first_name' in validated_data:
             user.first_name = validated_data['first_name'] or ''
         if 'last_name' in validated_data:
@@ -213,7 +199,6 @@ class ProfileUpdateSerializer(serializers.Serializer):
             user.email = validated_data['email']
         user.save()
         
-        # Get or create profile based on user_type
         profile = None
         if user.user_type == 'business':
             profile = getattr(user, 'business_profile', None)
@@ -225,21 +210,17 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 profile = CustomerProfile.objects.create(user=user)
         
         if profile:
-            # Update common fields (with field mapping)
             if 'tel' in validated_data and user.user_type == 'business':
                 profile.phone = validated_data['tel'] or ''
             
             if user.user_type == 'business':
-                # For business: location maps to location field
                 if 'location' in validated_data:
                     profile.location = validated_data['location'] or ''
-                # Business-specific fields
                 if 'description' in validated_data:
                     profile.description = validated_data['description'] or ''
                 if 'working_hours' in validated_data:
                     profile.working_hours = validated_data['working_hours'] or ''
             else:
-                # For customer: only first_name, last_name in profile
                 if 'first_name' in validated_data:
                     profile.first_name = validated_data['first_name'] or ''
                 if 'last_name' in validated_data:
@@ -265,29 +246,23 @@ class ProfileUpdateSerializer(serializers.Serializer):
         elif user.user_type == 'customer':
             profile = getattr(user, 'customer_profile', None)
         
-        # Basis-Felder zuerst
         data = {
             'user': user.id,
             'username': user.username,
         }
         
-        # first_name und last_name kommen aus unterschiedlichen Quellen
         if user.user_type == 'customer' and profile:
-            # Bei Customer aus dem Profile
             data['first_name'] = profile.first_name or ''
             data['last_name'] = profile.last_name or ''
         else:
-            # Bei Business aus dem User-Model
             data['first_name'] = user.first_name or ''
             data['last_name'] = user.last_name or ''
         
-        # File
         if profile:
             data['file'] = profile.profile_image.url if profile.profile_image else None
         else:
             data['file'] = None
         
-        # Business-spezifische Felder in der richtigen Reihenfolge
         if user.user_type == 'business':
             if profile:
                 data['location'] = profile.location or ''
@@ -300,12 +275,10 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 data['description'] = ''
                 data['working_hours'] = ''
             
-            # Type, Email, Created_at am Ende
             data['type'] = user.user_type
             data['email'] = user.email
             data['created_at'] = user.date_joined.isoformat() if hasattr(user, 'date_joined') else user.created_at.isoformat()
         else:
-            # Customer hat nur type am Ende
             data['type'] = user.user_type
         
         return data
@@ -321,19 +294,16 @@ class ProfileSerializer(serializers.Serializer):
     email = serializers.EmailField(read_only=True)
     user_type = serializers.CharField(read_only=True)
     
-    # Business fields
     company_name = serializers.CharField(required=False, allow_blank=True)
     description = serializers.CharField(required=False, allow_blank=True)
     location = serializers.CharField(required=False, allow_blank=True)
     working_hours = serializers.CharField(required=False, allow_blank=True)
     website = serializers.URLField(required=False, allow_blank=True)
     
-    # Customer fields
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     location = serializers.CharField(required=False, allow_blank=True)
     
-    # Common fields
     phone = serializers.CharField(required=False, allow_blank=True)
     profile_image = serializers.ImageField(required=False, allow_null=True)
     created_at = serializers.DateTimeField(read_only=True)
