@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
+from apps.users.models import BusinessProfile, CustomerProfile
 
 User = get_user_model()
 
@@ -55,7 +56,7 @@ class RegistrationSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
-        """Create new user"""
+        """Create new user and corresponding profile"""
         validated_data.pop('repeated_password')
         user_type = validated_data.pop('type')
         
@@ -65,4 +66,11 @@ class RegistrationSerializer(serializers.Serializer):
             password=validated_data['password'],
             user_type=user_type
         )
+        
+        # Automatically create profile based on user type
+        if user_type == 'business':
+            BusinessProfile.objects.create(user=user)
+        elif user_type == 'customer':
+            CustomerProfile.objects.create(user=user)
+        
         return user
