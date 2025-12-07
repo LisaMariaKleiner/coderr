@@ -1,5 +1,27 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+
+
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def create_user(self, username, email=None, password=None, user_type='customer', **extra_fields):
+        if not username:
+            raise ValueError('The Username must be set')
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, user_type=user_type, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, email=None, password=None, user_type='customer', **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        return self.create_user(username, email, password, user_type, **extra_fields)
 
 
 class User(AbstractUser):
@@ -12,6 +34,8 @@ class User(AbstractUser):
     ]
     
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='customer')
+
+    objects = UserManager()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
