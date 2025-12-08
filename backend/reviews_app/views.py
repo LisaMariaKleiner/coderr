@@ -3,13 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Review
 from .serializers import ReviewSerializer
-from apps.offers.models import Offer
+from offers_app.models import Offer
 
 
 class IsReviewerOrReadOnly(permissions.BasePermission):
-    """
-    Custom permission: Only the reviewer can edit/delete their review
-    """
+    """Custom permission: Only the reviewer can edit/delete their review"""
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -17,6 +15,7 @@ class IsReviewerOrReadOnly(permissions.BasePermission):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """ViewSet for Reviews"""
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -34,7 +33,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return Response({'detail': ' Erfolgreich gelöscht.'}, status=status.HTTP_204_NO_CONTENT)
 
     def partial_update(self, request, *args, **kwargs):
-        """Erlaubt nur das Bearbeiten von rating und description (comment) durch den Ersteller."""
+        """Allows only the creator to edit rating and description (comment)"""
         try:
             instance = self.get_object()
         except Exception:
@@ -78,14 +77,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    """
-    ViewSet for Reviews
-    """
+    
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticated, IsReviewerOrReadOnly]
-    # business_user_id wird über offer__business_user gefiltert, reviewer_id über reviewer
     filterset_fields = ['offer__business_user', 'reviewer', 'rating']
     ordering_fields = ['rating', 'created_at', 'updated_at']
 

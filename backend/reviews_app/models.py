@@ -1,13 +1,11 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from apps.users.models import User
-from apps.offers.models import Offer
+from users_app.models import User
+from offers_app.models import Offer
 
 
 class Review(models.Model):
-    """
-    Review model for offers
-    """
+    """Review model for offers"""
     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, related_name='reviews')
     reviewer = models.ForeignKey(
         User,

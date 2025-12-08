@@ -4,11 +4,9 @@ from .models import Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Review Serializer"""
-
     business_user = serializers.SerializerMethodField()
     reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
     description = serializers.CharField(source='comment')
-
 
     class Meta:
         model = Review
@@ -16,7 +14,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             'id', 'business_user', 'reviewer', 'rating', 'description', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'reviewer', 'created_at', 'updated_at']
-
 
     def get_business_user(self, obj):
         return getattr(obj.offer, 'business_user_id', None)
