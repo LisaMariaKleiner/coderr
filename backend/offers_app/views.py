@@ -12,9 +12,7 @@ class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericView
 
 
 class IsBusinessUserOrReadOnly(permissions.BasePermission):
-    """
-    Custom permission: Only business users can create/edit offers
-    """
+    """Custom permission: Only business users can create/edit offers"""
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
@@ -26,17 +24,14 @@ class IsBusinessUserOrReadOnly(permissions.BasePermission):
         return obj.business_user == request.user
 
 
-
-
 class OfferViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
-        """Gibt ein einzelnes Angebot im eigenen Detail-Format zurück (eigener Serializer, keine Logik-Teilung mit list)"""
+        """get a single offer with full details"""
         offer = self.get_object()
         serializer = OfferRetrieveFullSerializer(offer, context={'request': request})
         return Response(serializer.data)
-    """
-    ViewSet for Offers
-    """
+    
+    """ViewSet for Offers"""
     queryset = Offer.objects.filter(is_active=True)
     permission_classes = [IsBusinessUserOrReadOnly]
     filterset_fields = ['business_user']
@@ -56,7 +51,7 @@ class OfferViewSet(viewsets.ModelViewSet):
         return OfferSerializer
 
     def partial_update(self, request, *args, **kwargs):
-        """PATCH /api/offers/<id>/ gibt das gewünschte kompakte Format zurück"""
+        """Patch an offer and return compact format"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -85,7 +80,7 @@ class OfferViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     def update(self, request, *args, **kwargs):
-        """PUT /api/offers/<id>/ gibt das gewünschte kompakte Format zurück"""
+        """Put an offer and return compact format"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -114,6 +109,7 @@ class OfferViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     def create(self, request, *args, **kwargs):
+        """Create a new Offer along with its details"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)

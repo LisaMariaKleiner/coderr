@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Offer, OfferDetail
 
+"""Serializers for Offer and OfferDetail models"""
 class OfferRetrieveReferenceDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     class Meta:
@@ -13,6 +14,7 @@ class OfferRetrieveReferenceDetailSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(f'/api/offerdetails/{obj.id}/')
         return f'/api/offerdetails/{obj.id}/'
 
+"""Serializer for detailed offer retrieval including min price and delivery time"""
 class OfferRetrieveFullSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
     details = OfferRetrieveReferenceDetailSerializer(many=True, read_only=True)
@@ -31,18 +33,22 @@ class OfferRetrieveFullSerializer(serializers.ModelSerializer):
     def get_min_delivery_time(self, obj):
         return min([d.delivery_time_in_days for d in obj.details.all()]) if obj.details.exists() else None
 
+"""Serializer for detailed offer retrieval including all detail fields"""
 class OfferRetrieveDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
 
-class OfferRetrieveSerializer(serializers.ModelSerializer):
-    details = OfferRetrieveDetailSerializer(many=True)
-    class Meta:
-        model = Offer
-        fields = ['id', 'title', 'image', 'description', 'details']
-        read_only_fields = ['id', 'details']
+# """Serializer for detailed offer retrieval including all details"""
+# class OfferRetrieveSerializer(serializers.ModelSerializer):
+#     details = OfferRetrieveDetailSerializer(many=True)
+#     class Meta:
+#         model = Offer
+#         fields = ['id', 'title', 'image', 'description', 'details']
+#         read_only_fields = ['id', 'details']
+
+"""Serializer for updating OfferDetail"""
 class OfferDetailUpdateSerializer(serializers.ModelSerializer):
     price = serializers.FloatField()
     class Meta:
@@ -50,6 +56,7 @@ class OfferDetailUpdateSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
 
+"""Serializer for updating Offer along with its details"""
 class OfferUpdateSerializer(serializers.ModelSerializer):
     details = OfferDetailUpdateSerializer(many=True)
 
@@ -85,8 +92,7 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-
-
+"""Serializer for referencing OfferDetail with URL"""
 class OfferDetailReferenceSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     class Meta:
@@ -96,8 +102,9 @@ class OfferDetailReferenceSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         return f"/offerdetails/{obj.id}/"
 
-class OfferListSerializer(serializers.ModelSerializer):
 
+"""Serializer for listing Offers with minimal detail info"""
+class OfferListSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
     details = OfferDetailReferenceSerializer(many=True, read_only=True)
     user_details = serializers.SerializerMethodField()
@@ -128,9 +135,7 @@ class OfferListSerializer(serializers.ModelSerializer):
         return min(times) if times else None
 
 
-
-
-
+"""Serializer for compact OfferDetail representation"""
 class OfferDetailCompactSerializer(serializers.ModelSerializer):
     price = serializers.FloatField()
     class Meta:
@@ -138,6 +143,8 @@ class OfferDetailCompactSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
 
+
+"""Serializer for compact Offer representation"""
 class OfferDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = OfferDetail
@@ -145,8 +152,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-
-
+"""Serializer for compact Offer representation"""
 class OfferCompactSerializer(serializers.ModelSerializer):
     details = OfferDetailCompactSerializer(many=True)
     class Meta:
@@ -155,6 +161,7 @@ class OfferCompactSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'details']
 
 
+"""Serializer for creating and updating Offers along with their details"""
 class OfferSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
     details = OfferDetailSerializer(many=True)

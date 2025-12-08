@@ -1,11 +1,9 @@
 from django.db import models
-from apps.users.models import User
+from users_app.models import User
 
 
 class Offer(models.Model):
-    """
-    Offer/Service model for businesses
-    """
+    """Offer/Service model for businesses"""
     business_user = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
