@@ -2,18 +2,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import models
-from apps.users.models import BusinessProfile
+from users_app.models import BusinessProfile
+from offers_app.models import Offer
+from reviews_app.models import Review
 
 class BaseInfoView(APIView):
-    """Gibt Basisinformationen zur Plattform zurück."""
+    """View to retrieve basic platform information"""
     authentication_classes = []
     permission_classes = []
 
     def get(self, request):
         try:
-            from apps.offers.models import Offer
-            from apps.reviews.models import Review
-
             review_count = Review.objects.count()
             avg_rating = Review.objects.aggregate(models.Avg('rating'))['rating__avg']
             average_rating = round(avg_rating, 1) if avg_rating is not None else 0.0
