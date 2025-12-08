@@ -33,11 +33,12 @@ INSTALLED_APPS = [
     'django_filters',
     
     # Local apps
-    'apps.authentication',
-    'apps.users',
-    'apps.offers',
-    'apps.orders',
-    'apps.reviews',
+    'authentication_app',
+    'users_app',
+    'offers_app',
+    'orders_app',
+    'reviews_app',
+    'platform_info_app'
 ]
 
 MIDDLEWARE = [
@@ -114,7 +115,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'users_app.User'
 
 # REST Framework Configuration
 REST_FRAMEWORK = {
