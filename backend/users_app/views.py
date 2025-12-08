@@ -98,9 +98,7 @@ class BusinessProfileViewSet(viewsets.ReadOnlyModelViewSet):
         return BusinessProfile.objects.select_related('user').all()
 
     def list(self, request, *args, **kwargs):
-        """
-        GET /api/profiles/business/
-        """
+        """GET /api/profiles/business/"""
         try:
             queryset = self.get_queryset()
             serializer = self.get_serializer(queryset, many=True)
@@ -140,9 +138,7 @@ class CustomerProfileViewSet(viewsets.ReadOnlyModelViewSet):
         return CustomerProfile.objects.select_related('user').all()
 
     def list(self, request, *args, **kwargs):
-        """
-        GET /api/profiles/customer/
-        """
+        """GET /api/profiles/customer/"""
         try:
             queryset = self.get_queryset()
             serializer = self.get_serializer(queryset, many=True)

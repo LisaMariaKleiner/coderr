@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
-
 class UserManager(BaseUserManager):
+    """Custom user manager to handle user creation with user_type"""
     use_in_migrations = True
 
     def create_user(self, username, email=None, password=None, user_type='customer', **extra_fields):
@@ -25,9 +25,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """
-    Custom User model extending Django's AbstractUser
-    """
+    """Custom User model extending Django's AbstractUser"""
     USER_TYPE_CHOICES = [
         ('customer', 'Customer'),
         ('business', 'Business'),
@@ -48,9 +46,7 @@ class User(AbstractUser):
 
 
 class BusinessProfile(models.Model):
-    """
-    Business-specific profile information
-    """
+    """Business-specific profile information"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='business_profile')
     company_name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
@@ -71,9 +67,7 @@ class BusinessProfile(models.Model):
 
 
 class CustomerProfile(models.Model):
-    """
-    Customer-specific profile information
-    """
+    """Customer-specific profile information"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='customer_profile')
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)

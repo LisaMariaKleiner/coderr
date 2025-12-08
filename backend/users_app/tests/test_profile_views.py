@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from apps.users.models import User, BusinessProfile, CustomerProfile
+from users_app.models import User, BusinessProfile, CustomerProfile
 
 
 class ProfileAPITestCase(TestCase):

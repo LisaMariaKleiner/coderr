@@ -40,9 +40,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileListSerializer(serializers.Serializer):
-    """
-    Business Profile List Serializer for GET /api/profiles/business/
-    """
+    """Business Profile List Serializer for GET /api/profiles/business/"""
     user = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
@@ -72,9 +70,7 @@ class BusinessProfileListSerializer(serializers.Serializer):
 
 
 class CustomerProfileListSerializer(serializers.Serializer):
-    """
-    Customer Profile List Serializer for GET /api/profiles/customer/
-    """
+    """Customer Profile List Serializer for GET /api/profiles/customer/"""
     user = serializers.IntegerField(source='user.id', read_only=True)
     username = serializers.CharField(source='user.username', read_only=True)
     first_name = serializers.CharField(read_only=True)
@@ -285,9 +281,7 @@ class ProfileUpdateSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.Serializer):
-    """
-    Read-only Profile Serializer for GET /api/profile/{pk}/
-    """
+    """Read-only Profile Serializer for GET /api/profile/{pk}/"""
     id = serializers.IntegerField(read_only=True)
     user = serializers.IntegerField(read_only=True)
     username = serializers.CharField(read_only=True)
