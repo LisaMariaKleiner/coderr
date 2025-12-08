@@ -12,9 +12,7 @@ User = get_user_model()
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
-    """
-    Login endpoint that returns user token and basic info
-    """
+    """Login endpoint that returns user token and basic info"""
     try:
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -41,25 +39,19 @@ def login_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def registration_view(request):
-    """
-    POST /api/registration/
-    Creates a new user (customer or business)
-    """
+    """Creates a new user (customer or business)"""
     try:
         serializer = RegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             token = Token.objects.create(user=user)
-            
             return Response({
                 'token': token.key,
                 'username': user.username,
                 'email': user.email,
                 'user_id': user.id,
             }, status=status.HTTP_201_CREATED)
-        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
     except Exception as e:
         return Response(
             {'detail': 'Internal server error occurred.'},
@@ -69,9 +61,7 @@ def registration_view(request):
 
 @api_view(['POST'])
 def logout_view(request):
-    """
-    Logout endpoint that deletes the user's token
-    """
+    """Logout endpoint that deletes the user's token"""
     if request.user.is_authenticated:
         request.user.auth_token.delete()
         return Response({'detail': 'Successfully logged out.'}, status=status.HTTP_200_OK)

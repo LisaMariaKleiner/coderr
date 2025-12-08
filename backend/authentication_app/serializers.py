@@ -1,20 +1,18 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
-from apps.users.models import BusinessProfile, CustomerProfile
+from users_app.models import BusinessProfile, CustomerProfile
 
 User = get_user_model()
 
-
+"""Serializer for user login"""
 class LoginSerializer(serializers.Serializer):
-    """Serializer for user login"""
     username = serializers.CharField()
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
-
         if username and password:
             user = authenticate(username=username, password=password)
             if user:
@@ -25,12 +23,11 @@ class LoginSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Unable to log in with provided credentials.')
         else:
             raise serializers.ValidationError('Must include "username" and "password".')
-
         return data
 
 
+"""Serializer for user registration"""
 class RegistrationSerializer(serializers.Serializer):
-    """Serializer for user registration"""
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={'input_type': 'password'})
@@ -66,11 +63,9 @@ class RegistrationSerializer(serializers.Serializer):
             password=validated_data['password'],
             user_type=user_type
         )
-        
-        # Automatically create profile based on user type
+        """Automatically create profile based on user type"""
         if user_type == 'business':
             BusinessProfile.objects.create(user=user)
         elif user_type == 'customer':
             CustomerProfile.objects.create(user=user)
-        
         return user
