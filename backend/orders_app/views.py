@@ -4,14 +4,14 @@ from rest_framework.response import Response
 from .models import Order
 from .serializers import OrderListSerializer, OrderCreateResponseSerializer, OrderCreateRequestSerializer, OrderStatusUpdateRequestSerializer, OrderStatusUpdateResponseSerializer, OrderCountResponseSerializer
 from django.contrib.auth import get_user_model
+from offers_app.models import OfferDetail
+
+
 class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='order-count/(?P<business_user_id>[^/.]+)')
     def order_count(self, request, business_user_id=None):
-        """
-        GET /api/order-count/{business_user_id}/ – Anzahl laufender Bestellungen für einen Business User
-        """
-        
+        """Get the count of orders for a specific business user with status 'in_progress'"""
         User = get_user_model()
         if not request.user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
@@ -22,28 +22,22 @@ class OrderViewSet(viewsets.ModelViewSet):
         count = Order.objects.filter(business=business_user, status='in_progress').count()
         serializer = OrderCountResponseSerializer({'order_count': count})
         return Response(serializer.data, status=200)
-
     def destroy(self, request, *args, **kwargs):
-        """
-        DELETE /api/orders/{id}/ – Löscht eine Bestellung (nur für Admin/Staff)
-        """
+        """DELETE an order (only for admin users)"""
         user = request.user
         if not user.is_authenticated:
             return Response({'detail': 'Benutzer ist nicht authentifiziert.'}, status=401)
         if not user.is_staff:
             return Response({'detail': 'Benutzer hat keine Berechtigung, die Bestellung zu löschen.'}, status=403)
-
         try:
             order = self.get_object()
         except Order.DoesNotExist:
             return Response({'detail': 'Die angegebene Bestellung wurde nicht gefunden.'}, status=404)
-
         order.delete()
         return Response(None, status=204)
-    """
-    ViewSet for Orders
-    """
+    
 
+    """ViewSet for Orders"""
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
             return OrderListSerializer
@@ -55,7 +49,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        """Admins sehen alle Orders, sonst nach user_type filtern"""
+        """Admins see all orders, business users see their orders, customers see their orders"""
         user = self.request.user
         if user.is_staff:
             return Order.objects.all()
@@ -72,15 +66,13 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['patch'])
     def update_status(self, request, pk=None):
-        """PATCH /api/orders/{id}/ – Status einer Bestellung aktualisieren (nur für business user)"""
+        """PATCH /api/orders/{id}/ – State of an order update (only by business user)"""
         order = self.get_object()
         user = request.user
         if not user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
         if user != order.business:
             return Response({'detail': 'Only the business user can update status.'}, status=403)
-
-        # Request validieren
         serializer = OrderStatusUpdateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         status_value = serializer.validated_data['status']
@@ -90,9 +82,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.status = status_value
         order.save()
 
-        # Response aufbauen (wie gewünscht)
         offer_detail = None
-        from apps.offers.models import OfferDetail
+        from offers_app.models import OfferDetail
         if hasattr(order, 'offer_id') and order.offer_id:
             offer_detail = OfferDetail.objects.filter(offer_id=order.offer_id).first()
         elif hasattr(order, 'offer') and order.offer:
@@ -116,21 +107,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         return Response(response_serializer.data, status=200)
 
     def create(self, request, *args, **kwargs):
-        """
-        POST /orders/ – Bestellung aus offer_detail_id erstellen (nur für Kunden)
-        """
+        """POST /orders/ – Create a new order (only for customer users)"""
         user = request.user
         if not user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
         if user.user_type != 'customer':
             return Response({'detail': 'Only customers can create orders.'}, status=403)
 
-        # Eingabe validieren
         serializer = OrderCreateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         offer_detail_id = serializer.validated_data['offer_detail_id']
 
-        from apps.offers.models import OfferDetail
+        from offers_app.models import OfferDetail
         try:
             offer_detail = OfferDetail.objects.select_related('offer__business_user').get(pk=offer_detail_id)
         except OfferDetail.DoesNotExist:
@@ -139,7 +127,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         offer = offer_detail.offer
         business_user = offer.business_user
 
-        # Bestellung anlegen
+        """Create order"""
         order = Order.objects.create(
             customer=user,
             business=business_user,
@@ -148,7 +136,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             status='in_progress',
         )
 
-        # Optionale Felder als Notiz speichern
+        """Save optional fields as notes"""
         notes = f"Order created from OfferDetail: {offer_detail.title}\n"
         notes += f"Revisions: {offer_detail.revisions}, Delivery: {offer_detail.delivery_time_in_days} days\n"
         notes += f"Features: {', '.join(offer_detail.features) if offer_detail.features else ''}\n"
@@ -175,10 +163,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='create-from-offer-detail')
     def create_from_offer_detail(self, request):
-        """
-        Erstellt eine neue Bestellung basierend auf OfferDetail.
-        Nur für authentifizierte Nutzer vom Typ 'customer'.
-        """
+        """Create a new order based on OfferDetail (only for customer users)"""
         user = request.user
         if not user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
@@ -189,7 +174,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         if not offer_detail_id:
             return Response({'detail': "'offer_detail_id' is required."}, status=400)
 
-        from apps.offers.models import OfferDetail
         try:
             offer_detail = OfferDetail.objects.select_related('offer__business_user').get(pk=offer_detail_id)
         except OfferDetail.DoesNotExist:
@@ -198,7 +182,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         offer = offer_detail.offer
         business_user = offer.business_user
 
-        # Bestellung anlegen
+        """Create order"""
         order = Order.objects.create(
             customer=user,
             business=business_user,
@@ -207,7 +191,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             status='in_progress',
         )
 
-        # Optionale Felder als Notiz speichern
+        """Save optional fields as notes"""
         notes = f"Order created from OfferDetail: {offer_detail.title}\n"
         notes += f"Revisions: {offer_detail.revisions}, Delivery: {offer_detail.delivery_time_in_days} days\n"
         notes += f"Features: {', '.join(offer_detail.features) if offer_detail.features else ''}\n"

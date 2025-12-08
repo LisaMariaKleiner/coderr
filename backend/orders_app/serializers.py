@@ -1,16 +1,16 @@
 from rest_framework import serializers
-from apps.offers.models import OfferDetail
+from offers_app.models import OfferDetail
 from .models import Order
 
-# Serializer für die Order-Count-Response
+"""Serializer for order count response"""
 class OrderCountResponseSerializer(serializers.Serializer):
     order_count = serializers.IntegerField()
 
-# PATCH-Request-Serializer für Status-Update
+"""PATCH request serializer for status update"""
 class OrderStatusUpdateRequestSerializer(serializers.Serializer):
     status = serializers.CharField(required=True)
 
-# PATCH-Response-Serializer (eigenständig, keine Vererbung von OrderListSerializer)
+"""PATCH response serializer (independent, no inheritance from OrderListSerializer)"""
 class OrderStatusUpdateResponseSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     customer_user = serializers.IntegerField()
@@ -25,9 +25,12 @@ class OrderStatusUpdateResponseSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
+
+"""Serializer for order create request"""
 class OrderCreateRequestSerializer(serializers.Serializer):
     offer_detail_id = serializers.IntegerField(required=True)
 
+"""Serializer for listing orders with offer detail info"""
 class OrderListSerializer(serializers.ModelSerializer):
     def get_offer_detail(self, obj):
        
@@ -42,6 +45,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             return OfferDetail.objects.filter(offer=obj.offer).first()
         return None
     offer_type = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
         fields = [
@@ -96,13 +100,10 @@ class OrderListSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user if request else None
         offer_detail_id = request.data.get('offer_detail_id') if request else None
-
-        # Set customer
         validated_data['customer'] = user
 
-        # Wenn offer_detail_id vorhanden, hole OfferDetail und setze offer, business, total_price
         if offer_detail_id:
-            from apps.offers.models import OfferDetail
+            from offers_app.models import OfferDetail
             try:
                 offer_detail = OfferDetail.objects.select_related('offer', 'offer__business_user').get(id=offer_detail_id)
             except OfferDetail.DoesNotExist:
@@ -118,6 +119,7 @@ class OrderListSerializer(serializers.ModelSerializer):
                 validated_data['total_price'] = offer.price
         return super().create(validated_data)
 
+"""Serializer for order create response"""
 class OrderCreateResponseSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     customer_user = serializers.IntegerField()

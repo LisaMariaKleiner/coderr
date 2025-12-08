@@ -1,9 +1,9 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from apps.users.models import User
-from apps.offers.models import Offer, OfferDetail
-from apps.orders.models import Order
+from users_app.models import User
+from offers_app.models import Offer, OfferDetail
+from orders_app.models import Order
 
 class CreateOrderFromOfferDetailTests(APITestCase):
     def setUp(self):

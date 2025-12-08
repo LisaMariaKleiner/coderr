@@ -6,9 +6,11 @@ from .models import Order
 from rest_framework import serializers
 
 class CompletedOrderCountResponseSerializer(serializers.Serializer):
+    """Serializer for completed order count response"""
     completed_order_count = serializers.IntegerField()
 
 class CompletedOrderCountView(APIView):
+    """API View to get the count of completed orders for a business user"""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
