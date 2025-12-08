@@ -1,8 +1,8 @@
 # Coderr - Freelancer Platform
 
-Ein Full-Stack Projekt mit Django REST Framework Backend und Vanilla JavaScript Frontend.
+A full-stack project with Django REST Framework backend and Vanilla JavaScript frontend.
 
-## 📁 Projekt-Struktur (Monorepo)
+## 📁 Project Structure (Monorepo)
 
 ```
 project.Coderr/
@@ -15,21 +15,21 @@ project.Coderr/
 └── backend/                  # Django REST API
     ├── manage.py
     ├── requirements.txt
-    ├── config/              # Django Konfiguration
-    ├── apps/                # Django Apps
-    │   ├── authentication/  # Login & Registration
-    │   ├── users/          # User & Profile Management
-    │   ├── offers/         # Angebote (CRUD)
-    │   ├── orders/         # Bestellungen
-    │   └── reviews/        # Bewertungen
-    ├── shared/             # Gemeinsame Utilities
-    ├── media/              # Upload Files
-    └── static/             # Static Backend Files
+    ├── core/                # Django core config
+    ├── authentication_app/  # Login & Registration
+    ├── users_app/           # User & Profile Management
+    ├── offers_app/          # Offers (CRUD)
+    ├── orders_app/          # Orders
+    ├── reviews_app/         # Reviews
+    ├── platform_info_app/   # Platform Info
+    ├── shared/              # Shared utilities
+    ├── media/               # Uploaded files
+    └── static/              # Static backend files
 ```
 
 ## 🚀 Backend Setup
 
-### 1. Virtual Environment erstellen
+### 1. Create virtual environment
 
 ```powershell
 cd backend
@@ -37,49 +37,46 @@ python -m venv venv
 .\venv\Scripts\Activate
 ```
 
-### 2. Dependencies installieren
+### 2. Install dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 3. Environment Variables
+### 3. Environment variables
 
-```powershell
-cp .env.example .env
-# Bearbeite .env und setze SECRET_KEY
-```
+Copy `.env.example` to `.env` and set your `SECRET_KEY`.
 
-### 4. Datenbank migrieren
+### 4. Migrate database
 
 ```powershell
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. Superuser erstellen (optional)
+### 5. Create superuser (optional)
 
 ```powershell
 python manage.py createsuperuser
 ```
 
-### 6. Server starten
+### 6. Start server
 
 ```powershell
 python manage.py runserver
 ```
 
-Backend läuft auf: `http://127.0.0.1:8000/`
+Backend: `http://127.0.0.1:8000/`
 Admin Panel: `http://127.0.0.1:8000/admin/`
 
 ## 🎨 Frontend Setup
 
-Das Frontend benötigt einen einfachen HTTP Server:
+You need a simple HTTP server for the frontend:
 
 ### Option 1: Live Server (VS Code Extension)
 
-- Installiere "Live Server" Extension
-- Rechtsklick auf `frontend/index.html` → "Open with Live Server"
+- Install "Live Server" extension
+- Right-click `frontend/index.html` → "Open with Live Server"
 
 ### Option 2: Python HTTP Server
 
@@ -88,7 +85,7 @@ cd frontend
 python -m http.server 5500
 ```
 
-Frontend läuft auf: `http://127.0.0.1:5500/`
+Frontend: `http://127.0.0.1:5500/`
 
 ## 📡 API Endpoints
 
@@ -96,42 +93,42 @@ Frontend läuft auf: `http://127.0.0.1:5500/`
 
 - `POST /api/login/` - Login
 - `POST /api/registration/` - Registration
-- `POST /api/logout/` - Logout (Token Required)
+- `POST /api/logout/` - Logout (Token required)
 
 ### Users & Profiles
 
-- `GET/PUT/PATCH /api/profiles/business/` - Business Profile CRUD
-- `GET/PUT/PATCH /api/profiles/customer/` - Customer Profile CRUD
-- `GET /api/profiles/business/me/` - Eigenes Business Profil
-- `GET /api/profiles/customer/me/` - Eigenes Customer Profil
+- `GET/PUT/PATCH /api/profiles/business/` - Business profile CRUD
+- `GET/PUT/PATCH /api/profiles/customer/` - Customer profile CRUD
+- `GET /api/profiles/business/me/` - Own business profile
+- `GET /api/profiles/customer/me/` - Own customer profile
 
 ### Offers
 
-- `GET /api/offers/` - Liste aller Angebote
-- `POST /api/offers/` - Neues Angebot erstellen (Business only)
-- `GET /api/offers/{id}/` - Einzelnes Angebot
-- `PUT/PATCH /api/offers/{id}/` - Angebot bearbeiten (Owner only)
-- `DELETE /api/offers/{id}/` - Angebot löschen (Owner only)
-- `GET /api/offers/my_offers/` - Eigene Angebote
+- `GET /api/offers/` - List all offers
+- `POST /api/offers/` - Create new offer (business only)
+- `GET /api/offers/{id}/` - Single offer
+- `PUT/PATCH /api/offers/{id}/` - Edit offer (owner only)
+- `DELETE /api/offers/{id}/` - Delete offer (owner only)
+- `GET /api/offers/my_offers/` - Own offers
 
 ### Orders
 
-- `GET /api/orders/` - Liste aller Orders (gefiltert nach User)
-- `POST /api/orders/` - Neue Bestellung erstellen
-- `GET /api/orders/{id}/` - Einzelne Order
-- `PATCH /api/orders/{id}/update_status/` - Status aktualisieren (Business only)
+- `GET /api/orders/` - List all orders (filtered by user)
+- `POST /api/orders/` - Create new order
+- `GET /api/orders/{id}/` - Single order
+- `PATCH /api/orders/{id}/update_status/` - Update status (business only)
 
 ### Reviews
 
-- `GET /api/reviews/` - Liste aller Reviews
-- `POST /api/reviews/` - Neue Review erstellen (Customer only)
-- `GET /api/reviews/{id}/` - Einzelne Review
-- `PUT/PATCH /api/reviews/{id}/` - Review bearbeiten (Owner only)
-- `DELETE /api/reviews/{id}/` - Review löschen (Owner only)
+- `GET /api/reviews/` - List all reviews
+- `POST /api/reviews/` - Create new review (customer only)
+- `GET /api/reviews/{id}/` - Single review
+- `PUT/PATCH /api/reviews/{id}/` - Edit review (owner only)
+- `DELETE /api/reviews/{id}/` - Delete review (owner only)
 
 ## 🔐 Authentication
 
-Das Backend nutzt Token Authentication:
+The backend uses token authentication:
 
 ```javascript
 // Login
@@ -145,7 +142,7 @@ fetch("http://127.0.0.1:8000/api/login/", {
     localStorage.setItem("auth-token", data.token);
   });
 
-// API Calls mit Token
+// API calls with token
 fetch("http://127.0.0.1:8000/api/offers/", {
   headers: {
     Authorization: `Token ${localStorage.getItem("auth-token")}`,
@@ -153,26 +150,26 @@ fetch("http://127.0.0.1:8000/api/offers/", {
 });
 ```
 
-## 🛠️ Nützliche Commands
+## 🛠️ Useful Commands
 
 ```powershell
-# Neue Migrationen erstellen
+# Create new migrations
 python manage.py makemigrations
 
-# Migrationen anwenden
+# Apply migrations
 python manage.py migrate
 
-# Shell öffnen
+# Open shell
 python manage.py shell
 
-# Tests ausführen
+# Run tests
 python manage.py test
 
-# Static Files sammeln (für Production)
+# Collect static files (for production)
 python manage.py collectstatic
 ```
 
-## 📦 Technologie-Stack
+## 📦 Tech Stack
 
 ### Backend
 
@@ -180,7 +177,7 @@ python manage.py collectstatic
 - Django REST Framework 3.14
 - Token Authentication
 - CORS Headers
-- SQLite (Development) / PostgreSQL (Production ready)
+- SQLite (development) / PostgreSQL (production ready)
 
 ### Frontend
 
@@ -188,54 +185,42 @@ python manage.py collectstatic
 - CSS3
 - Fetch API
 
-## 🔧 CORS Konfiguration
+## 🔧 CORS Configuration
 
-In `backend/config/settings.py` sind folgende Origins erlaubt:
+Allowed origins in `backend/core/settings.py`:
 
 - `http://localhost:3000`
 - `http://127.0.0.1:3000`
 - `http://localhost:5500`
 - `http://127.0.0.1:5500`
 
-Für andere Ports/URLs: `CORS_ALLOWED_ORIGINS` in `settings.py` anpassen.
+For other ports/URLs: adjust `CORS_ALLOWED_ORIGINS` in `settings.py`.
 
 ## 📝 Development Workflow
 
-1. **Backend zuerst starten**: `python manage.py runserver`
-2. **Frontend starten**: Live Server oder HTTP Server
-3. **API im Browser testen**: `http://127.0.0.1:8000/api/`
-4. **Frontend testen**: `http://127.0.0.1:5500/`
+1. **Start backend first**: `python manage.py runserver`
+2. **Start frontend**: Live Server or HTTP server
+3. **Test API in browser**: `http://127.0.0.1:8000/api/`
+4. **Test frontend**: `http://127.0.0.1:5500/`
 
-## 🚧 Produktions-Deployment
+## 🚧 Production Deployment
 
 ### Backend (Django)
 
-- `DEBUG = False` setzen
-- Secret Key über Environment Variable laden
-- PostgreSQL/MySQL Database einrichten
-- Gunicorn/uWSGI als WSGI Server
-- Nginx als Reverse Proxy
-- HTTPS einrichten
+- Set `DEBUG = False`
+- Load secret key via environment variable
+- Set up PostgreSQL/MySQL database
+- Use Gunicorn/uWSGI as WSGI server
+- Use Nginx as reverse proxy
+- Enable HTTPS
 
 ### Frontend
 
-- Static Files auf CDN/Webserver
-- API_BASE_URL in `shared/scripts/config.js` auf Production URL anpassen
+- Host static files on CDN/web server
+- Set `API_BASE_URL` in `shared/scripts/config.js` to production URL
 
-## 📚 Weitere Dokumentation
+## 📚 Further Documentation
 
 - [Django Docs](https://docs.djangoproject.com/)
 - [Django REST Framework](https://www.django-rest-framework.org/)
-- [API Browser](http://127.0.0.1:8000/api/) (wenn Backend läuft)
-
-## 🤝 Mitarbeit
-
-Branches erstellen für neue Features:
-
-```powershell
-git checkout -b feature/neue-funktion
-```
-
-## 📄 Lizenz
-
-Siehe LICENSE.md
+- [API Browser](http://127.0.0.1:8000/api/) (when backend is running)
