@@ -4,8 +4,8 @@ from . import views
 
 
 router = DefaultRouter()
-router.register(r'offers', views.OfferViewSet, basename='offer')
-router.register(r'offerdetails', views.OfferDetailRetrieveViewSet, basename='offerdetail')
+router.register('offers', views.OfferViewSet, basename='offer')
+router.register('offerdetails', views.OfferDetailRetrieveViewSet, basename='offerdetail')
 
 urlpatterns = [
     path('', include(router.urls)),
