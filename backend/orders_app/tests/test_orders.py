@@ -6,6 +6,34 @@ from orders_app.models import Order
 from rest_framework import status
 
 class OrderTests(APITestCase):
+    def test_order_patch_status_response_structure(self):
+        self.client.force_authenticate(user=self.business)
+        url = reverse('order-update-status', args=[self.order.id])
+        patch_data = {"status": "completed"}
+        response = self.client.patch(url, patch_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_keys = {
+            'id', 'customer_user', 'business_user', 'title', 'revisions', 'delivery_time_in_days',
+            'price', 'features', 'offer_type', 'status', 'created_at', 'updated_at'
+        }
+        self.assertEqual(set(response.data.keys()), expected_keys)
+        self.assertEqual(response.data['id'], self.order.id)
+        self.assertEqual(response.data['customer_user'], self.order.customer.id)
+        self.assertEqual(response.data['business_user'], self.order.business.id)
+        self.assertEqual(response.data['status'], 'completed')
+    def test_order_list_response_structure(self):
+        self.client.force_authenticate(user=self.customer)
+        url = reverse('order-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.data, list)
+        if response.data:
+            order = response.data[0]
+            expected_keys = {
+                'id', 'customer_user', 'business_user', 'title', 'revisions', 'delivery_time_in_days',
+                'price', 'features', 'offer_type', 'status', 'created_at', 'updated_at'
+            }
+            self.assertEqual(set(order.keys()), expected_keys)
     def test_create_order_success_full_response(self):
         self.client.force_authenticate(user=self.customer)
         response = self.client.post(self.create_url, {'offer_detail_id': self.offer_detail.id}, format='json')
