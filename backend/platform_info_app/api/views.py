@@ -24,7 +24,8 @@ class BaseInfoView(APIView):
                 "review_count": review_count,
                 "average_rating": average_rating,
                 "business_profile_count": business_profile_count,
-                "offer_count": offer_count
-            }, {'detail': 'Die Basisinformationen wurden erfolgreich abgerufen.'}, status=status.HTTP_200_OK)
+                "offer_count": offer_count,
+                "detail": "Die Basisinformationen wurden erfolgreich abgerufen."
+            }, status=status.HTTP_200_OK)
         except Exception:
             return Response({"detail": "Interner Serverfehler."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
