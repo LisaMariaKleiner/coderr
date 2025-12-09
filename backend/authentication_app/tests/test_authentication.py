@@ -15,8 +15,13 @@ class AuthenticationTests(APITestCase):
         data = {'username': self.username, 'password': self.password}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
+        # Erwartete Keys im Response
+        expected_keys = {'token', 'username', 'email', 'user_id'}
+        self.assertEqual(set(response.data.keys()), expected_keys)
+        self.assertIsInstance(response.data['token'], str)
         self.assertEqual(response.data['username'], self.username)
+        self.assertIsInstance(response.data['email'], str)
+        self.assertIsInstance(response.data['user_id'], int)
 
     def test_login_failure(self):
         url = reverse('login')
@@ -24,3 +29,22 @@ class AuthenticationTests(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('Unable to log in with provided credentials.', str(response.data))
+
+    def test_registration_response_structure(self):
+        url = reverse('registration')
+        data = {
+            'username': 'exampleUsername',
+            'email': 'example@mail.de',
+            'password': 'examplePassword',
+            'repeated_password': 'examplePassword',
+            'type': 'customer'
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Erwartete Keys im Response
+        expected_keys = {'token', 'username', 'email', 'user_id'}
+        self.assertEqual(set(response.data.keys()), expected_keys)
+        self.assertIsInstance(response.data['token'], str)
+        self.assertEqual(response.data['username'], data['username'])
+        self.assertEqual(response.data['email'], data['email'])
+        self.assertIsInstance(response.data['user_id'], int)
