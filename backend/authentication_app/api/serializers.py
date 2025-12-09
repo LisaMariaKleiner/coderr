@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from users_app.models import BusinessProfile, CustomerProfile
+from profiles_app.models import BusinessProfile, CustomerProfile
 
 User = get_user_model()
 
