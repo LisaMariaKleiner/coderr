@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from users_app.models import User
+from profiles_app.models import User
 from offers_app.models import Offer
 
 

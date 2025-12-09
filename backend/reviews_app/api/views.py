@@ -23,7 +23,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Forbidden. Der Benutzer ist nicht berechtigt, diese Bewertung zu löschen.'}, status=status.HTTP_403_FORBIDDEN)
 
         instance.delete()
-        return Response({'detail': ' Erfolgreich gelöscht.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def partial_update(self, request, *args, **kwargs):
         """Allows only the creator to edit rating and description (comment)"""

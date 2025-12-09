@@ -4,9 +4,31 @@ from ..models import Review
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Review Serializer"""
+
     business_user = serializers.SerializerMethodField()
     reviewer = serializers.PrimaryKeyRelatedField(read_only=True)
     description = serializers.CharField(source='comment')
+    created_at = serializers.SerializerMethodField()
+    updated_at = serializers.SerializerMethodField()
+
+    def get_created_at(self, obj):
+        # Ausgabe im Format YYYY-MM-DDTHH:MM:SSZ (UTC, ohne Mikrosekunden)
+        from django.utils.timezone import is_naive, make_aware
+        import datetime
+        dt = obj.created_at
+        if is_naive(dt):
+            dt = make_aware(dt, datetime.timezone.utc)
+        dt = dt.astimezone(datetime.timezone.utc)
+        return dt.replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+
+    def get_updated_at(self, obj):
+        from django.utils.timezone import is_naive, make_aware
+        import datetime
+        dt = obj.updated_at
+        if is_naive(dt):
+            dt = make_aware(dt, datetime.timezone.utc)
+        dt = dt.astimezone(datetime.timezone.utc)
+        return dt.replace(microsecond=0).isoformat().replace('+00:00', 'Z')
 
     class Meta:
         model = Review
