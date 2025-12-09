@@ -17,7 +17,7 @@ project.Coderr/
     ├── requirements.txt
     ├── core/                # Django core config
     ├── authentication_app/  # Login & Registration
-    ├── users_app/           # User & Profile Management
+    ├── profiles_app/           # User & Profile Management
     ├── offers_app/          # Offers (CRUD)
     ├── orders_app/          # Orders
     ├── reviews_app/         # Reviews
