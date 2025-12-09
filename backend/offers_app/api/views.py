@@ -2,7 +2,11 @@ from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Offer, OfferDetail
-from .serializers import OfferSerializer, OfferCompactSerializer, OfferListSerializer, OfferUpdateSerializer, OfferRetrieveFullSerializer, OfferDetailSerializer
+from .serializers import (
+    OfferSerializer, OfferCompactSerializer, OfferListSerializer, OfferUpdateSerializer,
+    OfferRetrieveFullSerializer, OfferDetailSerializer
+)
+from .permissions import IsBusinessUserOrReadOnly
 
 
 class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):

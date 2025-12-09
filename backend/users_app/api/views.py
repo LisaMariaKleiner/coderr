@@ -1,15 +1,12 @@
-from rest_framework import viewsets, status, generics
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from django.shortcuts import get_object_or_404
 from django.http import Http404
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets, generics
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+
 from ..models import User, BusinessProfile, CustomerProfile
 from .serializers import (
-    UserSerializer, 
-    BusinessProfileSerializer, 
-    CustomerProfileSerializer,
-    ProfileSerializer,
     ProfileUpdateSerializer,
     ProfileDetailSerializer,
     BusinessProfileListSerializer,
