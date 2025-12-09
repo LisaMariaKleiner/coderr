@@ -2,7 +2,7 @@
 
 A full-stack project with Django REST Framework backend and Vanilla JavaScript frontend.
 
-## 📁 Project Structure (Monorepo)
+## 📁 Projektstruktur
 
 ```
 project.Coderr/
@@ -12,55 +12,53 @@ project.Coderr/
 │   ├── styles/
 │   └── shared/
 │
-└── backend/                  # Django REST API
-    ├── manage.py
-    ├── requirements.txt
-    ├── core/                # Django core config
-    ├── authentication_app/  # Login & Registration
-    ├── profiles_app/           # User & Profile Management
-    ├── offers_app/          # Offers (CRUD)
-    ├── orders_app/          # Orders
-    ├── reviews_app/         # Reviews
-    ├── platform_info_app/   # Platform Info
-    ├── shared/              # Shared utilities
-    ├── media/               # Uploaded files
-    └── static/              # Static backend files
+├── manage.py                 # Django Management
+├── requirements.txt          # Python-Abhängigkeiten
+├── core/                     # Django core config
+├── authentication_app/       # Login & Registration
+├── profiles_app/             # User & Profile Management
+├── offers_app/               # Offers (CRUD)
+├── orders_app/               # Orders
+├── reviews_app/              # Reviews
+├── platform_info_app/        # Platform Info
+├── shared/                   # Shared utilities
+├── media/                    # Hochgeladene Dateien
+└── static/                   # Statische Backend-Dateien
 ```
 
 ## 🚀 Backend Setup
 
-### 1. Create virtual environment
+### 1. Virtuelle Umgebung erstellen
 
 ```powershell
-cd backend
 python -m venv venv
 .\venv\Scripts\Activate
 ```
 
-### 2. Install dependencies
+### 2. Abhängigkeiten installieren
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 3. Environment variables
+### 3. Umgebungsvariablen
 
-Copy `.env.example` to `.env` and set your `SECRET_KEY`.
+Kopiere `.env.example` zu `.env` und setze deinen `SECRET_KEY`.
 
-### 4. Migrate database
+### 4. Datenbank migrieren
 
 ```powershell
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 5. Create superuser (optional)
+### 5. Superuser anlegen (optional)
 
 ```powershell
 python manage.py createsuperuser
 ```
 
-### 6. Start server
+### 6. Server starten
 
 ```powershell
 python manage.py runserver
@@ -187,7 +185,7 @@ python manage.py collectstatic
 
 ## 🔧 CORS Configuration
 
-Allowed origins in `backend/core/settings.py`:
+Erlaubte Origins in `core/settings.py`:
 
 - `http://localhost:3000`
 - `http://127.0.0.1:3000`
