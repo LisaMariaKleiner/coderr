@@ -1,5 +1,5 @@
 from django.db import models
-from users_app.models import User
+from profiles_app.models import User
 from offers_app.models import Offer
 
 

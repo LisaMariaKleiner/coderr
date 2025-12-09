@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
-from users_app.models import User
+from profiles_app.models import User
 from offers_app.models import Offer, OfferDetail
 from orders_app.models import Order
 from rest_framework import status
