@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from users_app.models import BusinessProfile
+from profiles_app.models import BusinessProfile
 from offers_app.models import Offer
 from reviews_app.models import Review
 
