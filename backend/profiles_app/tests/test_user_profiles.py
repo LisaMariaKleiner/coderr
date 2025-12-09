@@ -16,7 +16,8 @@ class UserProfileTests(APITestCase):
         self.assertGreaterEqual(len(response.data), 1)
         for profile in response.data:
             expected_fields = {
-                'user', 'username', 'first_name', 'last_name', 'file', 'type'
+                'user', 'username', 'first_name', 'last_name', 'file', 'type',
+                'location', 'tel', 'description', 'working_hours'
             }
             self.assertEqual(set(profile.keys()), expected_fields)
             self.assertEqual(profile['type'], 'customer')

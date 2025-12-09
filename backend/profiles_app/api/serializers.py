@@ -76,10 +76,10 @@ class CustomerProfileListSerializer(serializers.Serializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     file = serializers.SerializerMethodField()
-    location = serializers.CharField(read_only=True)
-    tel = serializers.CharField(read_only=True)
-    description = serializers.CharField(read_only=True)
-    working_hours = serializers.CharField(read_only=True)
+    location = serializers.CharField(read_only=True, default='')
+    tel = serializers.CharField(read_only=True, default='')
+    description = serializers.CharField(read_only=True, default='')
+    working_hours = serializers.CharField(read_only=True, default='')
     type = serializers.SerializerMethodField()
 
     def get_file(self, obj):
