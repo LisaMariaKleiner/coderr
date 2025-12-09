@@ -8,12 +8,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('authentication_app.urls')),
-    path('api/', include('users_app.urls')),
-    path('api/', include('offers_app.urls')),
-    path('api/', include('orders_app.urls')),
-    path('api/', include('reviews_app.urls')),
-    path('api/', include('platform_info_app.urls')),
+    path('api/', include('authentication_app.api.urls')),
+    path('api/', include('users_app.api.urls')),
+    path('api/', include('offers_app.api.urls')),
+    path('api/', include('orders_app.api.urls')),
+    path('api/', include('reviews_app.api.urls')),
+    path('api/', include('platform_info_app.api.urls')),
 ]
 
 # Serve media files in development
