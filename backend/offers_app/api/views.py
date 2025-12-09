@@ -42,12 +42,12 @@ class OfferViewSet(viewsets.ModelViewSet):
         return OfferSerializer
 
     def partial_update(self, request, *args, **kwargs):
-        """Patch an offer and return compact format"""
+        """Patch an offer and return full offer with all details (wie POST)"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        offer = serializer.instance
+        offer = instance
         details = offer.details.all()
         details_list = [
             {

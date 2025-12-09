@@ -40,13 +40,6 @@ class OfferRetrieveDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
 
-# """Serializer for detailed offer retrieval including all details"""
-# class OfferRetrieveSerializer(serializers.ModelSerializer):
-#     details = OfferRetrieveDetailSerializer(many=True)
-#     class Meta:
-#         model = Offer
-#         fields = ['id', 'title', 'image', 'description', 'details']
-#         read_only_fields = ['id', 'details']
 
 """Serializer for updating OfferDetail"""
 class OfferDetailUpdateSerializer(serializers.ModelSerializer):
@@ -72,22 +65,20 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         if details_data is not None:
-            existing_details = {d.id: d for d in instance.details.all()}
-            sent_ids = set()
+            existing_details = list(instance.details.all())
+            existing_by_type = {d.offer_type: d for d in existing_details}
+            updated_types = set()
             for detail in details_data:
-                detail_id = detail.get('id', None)
-                if detail_id and detail_id in existing_details:
-                    detail_instance = existing_details[detail_id]
+                offer_type = detail.get('offer_type')
+                if offer_type in existing_by_type:
+                    detail_instance = existing_by_type[offer_type]
                     for attr, value in detail.items():
                         if attr != 'id':
                             setattr(detail_instance, attr, value)
                     detail_instance.save()
-                    sent_ids.add(detail_id)
+                    updated_types.add(offer_type)
                 else:
                     OfferDetail.objects.create(offer=instance, **detail)
-            for detail_id, detail_instance in existing_details.items():
-                if detail_id not in sent_ids:
-                    detail_instance.delete()
 
         return instance
 
@@ -146,6 +137,8 @@ class OfferDetailCompactSerializer(serializers.ModelSerializer):
 
 """Serializer for compact Offer representation"""
 class OfferDetailSerializer(serializers.ModelSerializer):
+    price = serializers.FloatField()
+
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
