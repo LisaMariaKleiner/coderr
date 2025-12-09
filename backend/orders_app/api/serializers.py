@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from offers_app.models import OfferDetail
-from .models import Order
+from ..models import Order
 
 """Serializer for order count response"""
 class OrderCountResponseSerializer(serializers.Serializer):

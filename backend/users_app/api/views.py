@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django.shortcuts import get_object_or_404
 from django.http import Http404
-from .models import User, BusinessProfile, CustomerProfile
+from ..models import User, BusinessProfile, CustomerProfile
 from .serializers import (
     UserSerializer, 
     BusinessProfileSerializer, 

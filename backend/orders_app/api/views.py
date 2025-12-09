@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Order
+from ..models import Order
 from .serializers import OrderListSerializer, OrderCreateResponseSerializer, OrderCreateRequestSerializer, OrderStatusUpdateRequestSerializer, OrderStatusUpdateResponseSerializer, OrderCountResponseSerializer
 from django.contrib.auth import get_user_model
 from offers_app.models import OfferDetail

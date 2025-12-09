@@ -2,15 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
-from .models import Order
-from rest_framework import serializers
+from ..models import Order
+from .serializers import OrderCountResponseSerializer
 
-class CompletedOrderCountResponseSerializer(serializers.Serializer):
-    """Serializer for completed order count response"""
-    completed_order_count = serializers.IntegerField()
-
-class CompletedOrderCountView(APIView):
-    """API View to get the count of completed orders for a business user"""
+class OrderCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
@@ -19,6 +14,6 @@ class CompletedOrderCountView(APIView):
             business_user = User.objects.get(id=business_user_id, user_type='business')
         except User.DoesNotExist:
             return Response({'detail': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=404)
-        count = Order.objects.filter(business=business_user, status='completed').count()
-        serializer = CompletedOrderCountResponseSerializer({'completed_order_count': count})
+        count = Order.objects.filter(business=business_user, status='in_progress').count()
+        serializer = OrderCountResponseSerializer({'order_count': count})
         return Response(serializer.data, status=200)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, BusinessProfile, CustomerProfile
+from ..models import User, BusinessProfile, CustomerProfile
 
 
 class UserSerializer(serializers.ModelSerializer):

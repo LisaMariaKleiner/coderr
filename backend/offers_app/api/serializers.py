@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Offer, OfferDetail
+from ..models import Offer, OfferDetail
 
 """Serializers for Offer and OfferDetail models"""
 class OfferRetrieveReferenceDetailSerializer(serializers.ModelSerializer):
