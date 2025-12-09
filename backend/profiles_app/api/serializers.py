@@ -76,6 +76,10 @@ class CustomerProfileListSerializer(serializers.Serializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     file = serializers.SerializerMethodField()
+    location = serializers.CharField(read_only=True)
+    tel = serializers.CharField(read_only=True)
+    description = serializers.CharField(read_only=True)
+    working_hours = serializers.CharField(read_only=True)
     type = serializers.SerializerMethodField()
 
     def get_file(self, obj):
@@ -88,6 +92,10 @@ class CustomerProfileListSerializer(serializers.Serializer):
         data = super().to_representation(instance)
         data['first_name'] = data.get('first_name') or ''
         data['last_name'] = data.get('last_name') or ''
+        data['location'] = getattr(instance, 'location', '') or ''
+        data['tel'] = getattr(instance, 'phone', '') or ''
+        data['description'] = getattr(instance, 'description', '') or ''
+        data['working_hours'] = getattr(instance, 'working_hours', '') or ''
         return data
 
 

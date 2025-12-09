@@ -3,7 +3,7 @@
 import django.contrib.auth.validators
 import django.db.models.deletion
 import django.utils.timezone
-import users_app.models
+import profiles_app.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 'ordering': ['-created_at'],
             },
             managers=[
-                ('objects', users_app.models.UserManager()),
+                ('objects', profiles_app.models.UserManager()),
             ],
         ),
         migrations.CreateModel(
