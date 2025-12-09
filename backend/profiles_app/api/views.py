@@ -21,7 +21,6 @@ class ProfileViewSet(viewsets.ViewSet):
     """
     permission_classes = [IsAuthenticated]
     
-    # Explicitly allow GET and PATCH methods
     http_method_names = ['get', 'patch', 'options', 'head']
 
     def retrieve(self, request, pk=None):
@@ -33,12 +32,28 @@ class ProfileViewSet(viewsets.ViewSet):
             user = User.objects.get(pk=pk)
             serializer = ProfileDetailSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
         except User.DoesNotExist:
             return Response(
                 {'detail': 'User profile not found.'}, 
                 status=status.HTTP_404_NOT_FOUND
             )
+        except AttributeError:
+            user = User.objects.get(pk=pk)
+            data = {
+                'user': user.id,
+                'username': user.username,
+                'first_name': '',
+                'last_name': '',
+                'file': None,
+                'location': '',
+                'tel': '',
+                'description': '',
+                'working_hours': '',
+                'type': user.user_type,
+                'email': user.email if hasattr(user, 'email') and user.email else '',
+                'created_at': '',
+            }
+            return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(
                 {'detail': 'Internal server error occurred.'},
@@ -52,22 +67,27 @@ class ProfileViewSet(viewsets.ViewSet):
         """
         try:
             user = User.objects.get(pk=pk)
-            
-            # Check if user is updating their own profile
             if request.user.id != user.id:
                 return Response(
                     {'detail': 'You do not have permission to edit this profile.'}, 
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
+            if user.user_type == 'business' and not hasattr(user, 'business_profile'):
+                return Response(
+                    {'detail': 'Business profile not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            if user.user_type == 'customer' and not hasattr(user, 'customer_profile'):
+                return Response(
+                    {'detail': 'Customer profile not found.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
             serializer = ProfileUpdateSerializer(user, data=request.data, partial=True)
-            
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            
+                response_serializer = ProfileDetailSerializer(user)
+                return Response(response_serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
         except User.DoesNotExist:
             return Response(
                 {'detail': 'User profile not found.'}, 
