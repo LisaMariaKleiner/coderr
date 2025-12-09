@@ -15,19 +15,6 @@ class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericView
     permission_classes = [permissions.AllowAny] 
 
 
-class IsBusinessUserOrReadOnly(permissions.BasePermission):
-    """Custom permission: Only business users can create/edit offers"""
-    def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return request.user.is_authenticated and request.user.user_type == 'business'
-
-    def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.business_user == request.user
-
-
 class OfferViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """get a single offer with full details"""
