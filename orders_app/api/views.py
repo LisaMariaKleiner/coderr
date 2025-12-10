@@ -8,6 +8,7 @@ from .serializers import (
     OrderStatusUpdateRequestSerializer, OrderStatusUpdateResponseSerializer, OrderCountResponseSerializer
 )
 from offers_app.models import OfferDetail
+from rest_framework.pagination import PageNumberPagination
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -49,8 +50,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderListSerializer
 
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = None
-
     def get_queryset(self):
         """Admins see all orders, business users see their orders, customers see their orders"""
         user = self.request.user
