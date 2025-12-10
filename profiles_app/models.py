@@ -72,6 +72,10 @@ class CustomerProfile(models.Model):
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     profile_image = models.ImageField(upload_to='profiles/customer/', blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    description = models.TextField(blank=True)
+    working_hours = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

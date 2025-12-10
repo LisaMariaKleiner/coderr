@@ -1,6 +1,45 @@
 from rest_framework import serializers
 from ..models import User, BusinessProfile, CustomerProfile
 
+class ProfileDetailSerializer(serializers.Serializer):
+    user = serializers.IntegerField(source='user.id', read_only=True)
+    username = serializers.CharField(source='user.username', read_only=True)
+    first_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
+    file = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+    tel = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    working_hours = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
+    email = serializers.EmailField(source='user.email', read_only=True)
+    created_at = serializers.DateTimeField(source='user.created_at', read_only=True)
+
+    def get_first_name(self, obj):
+        return getattr(obj, 'first_name', '')
+
+    def get_last_name(self, obj):
+        return getattr(obj, 'last_name', '')
+    
+    def get_location(self, obj):
+        return getattr(obj, 'location', '')
+
+    def get_file(self, obj):
+        return getattr(obj, 'profile_image', None).name if getattr(obj, 'profile_image', None) else None
+
+    def get_tel(self, obj):
+        return getattr(obj, 'phone', '')
+
+    def get_description(self, obj):
+        return getattr(obj, 'description', '')
+
+    def get_working_hours(self, obj):
+        return getattr(obj, 'working_hours', '')
+
+    def get_type(self, obj):
+        if hasattr(obj, 'company_name'):
+            return 'business'
+        return 'customer'
 
 class UserSerializer(serializers.ModelSerializer):
     """Basic User Serializer"""
@@ -92,7 +131,6 @@ class CustomerProfileListSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Alle Felder immer vorhanden, nie null
         data['first_name'] = getattr(instance, 'first_name', '') or ''
         data['last_name'] = getattr(instance, 'last_name', '') or ''
         data['location'] = getattr(instance, 'location', '') or ''
@@ -142,15 +180,15 @@ class ProfileDetailSerializer(serializers.Serializer):
         Gibt für Business-Profile alle Felder, für Customer-Profile nur die erlaubten Felder zurück.
         Alle Felder sind nie null, sondern immer mindestens ein leerer String.
         """
-        if instance.user_type == 'business':
+        if hasattr(instance, 'user') and getattr(instance.user, 'user_type', None) == 'business':
             profile = getattr(instance, 'business_profile', None)
             def safe_str(val):
                 return val if val is not None else ''
             data = {
                 'user': instance.id,
                 'username': safe_str(getattr(instance, 'username', '')),
-                'first_name': safe_str(getattr(profile, 'first_name', '')),
-                'last_name': safe_str(getattr(profile, 'last_name', '')),
+                'first_name': safe_str(getattr(instance, 'first_name', '')),
+                'last_name': safe_str(getattr(instance, 'last_name', '')),
                 'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
                 'location': safe_str(getattr(profile, 'location', '')),
                 'tel': safe_str(getattr(profile, 'phone', '')),
@@ -171,7 +209,13 @@ class ProfileDetailSerializer(serializers.Serializer):
                 'first_name': safe_str(getattr(profile, 'first_name', '')),
                 'last_name': safe_str(getattr(profile, 'last_name', '')),
                 'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
+                'location': safe_str(getattr(profile, 'location', '')),
+                'tel': safe_str(getattr(profile, 'phone', '')),
+                'description': safe_str(getattr(profile, 'description', '')),
+                'working_hours': safe_str(getattr(profile, 'working_hours', '')),
                 'type': safe_str(getattr(instance, 'user_type', '')),
+                'email': safe_str(getattr(instance, 'email', '')),
+                'created_at': self.get_created_at(instance),
             }
             return data
 
@@ -228,12 +272,19 @@ class ProfileUpdateSerializer(serializers.Serializer):
                     profile.description = validated_data['description']
                 if 'working_hours' in validated_data and validated_data['working_hours'] != '':
                     profile.working_hours = validated_data['working_hours']
-            # CustomerProfile-Felder
-            else:
+            elif user.user_type == 'customer':
                 if 'first_name' in validated_data and validated_data['first_name'] != '':
                     profile.first_name = validated_data['first_name']
                 if 'last_name' in validated_data and validated_data['last_name'] != '':
                     profile.last_name = validated_data['last_name']
+                if 'tel' in validated_data and validated_data['tel'] != '':
+                    profile.phone = validated_data['tel']
+                if 'location' in validated_data and validated_data['location'] != '':
+                    profile.location = validated_data['location']
+                if 'description' in validated_data and validated_data['description'] != '':
+                    profile.description = validated_data['description']
+                if 'working_hours' in validated_data and validated_data['working_hours'] != '':
+                    profile.working_hours = validated_data['working_hours']
             if 'file' in validated_data and validated_data['file']:
                 profile.profile_image = validated_data['file']
             profile.save()

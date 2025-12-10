@@ -4,6 +4,7 @@ from rest_framework import status, viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+import traceback
 
 from ..models import User, BusinessProfile, CustomerProfile
 from .serializers import (
@@ -21,44 +22,29 @@ class ProfileViewSet(viewsets.ViewSet):
     """
     permission_classes = [IsAuthenticated]
     
-    http_method_names = ['get', 'patch', 'options', 'head']
+    http_method_names = ['get', 'patch']
 
-    def retrieve(self, request, pk=None):
+    def get(self, request, pk=None):
         """
         GET /api/profile/{pk}/
-        Returns detailed profile information for a user
+        Gibt vereinheitlichte Profil-Details für einen User zurück (Business oder Customer)
         """
         try:
             user = User.objects.get(pk=pk)
-            serializer = ProfileDetailSerializer(user)
+            try:
+                if user.user_type == 'business':
+                    profile = user.business_profile
+                elif user.user_type == 'customer':
+                    profile = user.customer_profile
+                user = profile.user
+                serializer = ProfileDetailSerializer(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except (BusinessProfile.DoesNotExist, CustomerProfile.DoesNotExist):
+                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+            serializer = ProfileDetailSerializer(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response(
-                {'detail': 'User profile not found.'}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except AttributeError:
-            user = User.objects.get(pk=pk)
-            data = {
-                'user': user.id,
-                'username': user.username,
-                'first_name': '',
-                'last_name': '',
-                'file': None,
-                'location': '',
-                'tel': '',
-                'description': '',
-                'working_hours': '',
-                'type': user.user_type,
-                'email': user.email if hasattr(user, 'email') and user.email else '',
-                'created_at': '',
-            }
-            return Response(data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(
-                {'detail': 'Internal server error occurred.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     def partial_update(self, request, pk=None):
         """
@@ -82,12 +68,20 @@ class ProfileViewSet(viewsets.ViewSet):
                     {'detail': 'Customer profile not found.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
-            serializer = ProfileUpdateSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                response_serializer = ProfileDetailSerializer(user)
+
+            if user.user_type == 'business':
+                profile = user.business_profile
+            elif user.user_type == 'customer':
+                profile = user.customer_profile
+            else:
+                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            update_serializer = ProfileUpdateSerializer(profile.user, data=request.data, partial=True)
+            if update_serializer.is_valid():
+                update_serializer.save()
+                response_serializer = ProfileDetailSerializer(profile.user)
                 return Response(response_serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response(
                 {'detail': 'User profile not found.'}, 
