@@ -57,14 +57,17 @@ class RegistrationSerializer(serializers.Serializer):
         """Create new user and corresponding profile"""
         validated_data.pop('repeated_password')
         user_type = validated_data.pop('type')
-        
+        first_name = validated_data.pop('first_name', '')
+        last_name = validated_data.pop('last_name', '')
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
-            user_type=user_type
+            user_type=user_type,
+            first_name=first_name,
+            last_name=last_name
         )
-        """Automatically create profile based on user type"""
+        # Automatically create profile based on user type
         if user_type == 'business':
             BusinessProfile.objects.create(user=user)
         elif user_type == 'customer':
