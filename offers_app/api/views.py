@@ -1,3 +1,15 @@
+from django_filters import rest_framework as filters
+
+from ..models import Offer, OfferDetail
+
+class OfferFilterSet(filters.FilterSet):
+    creator_id = filters.NumberFilter(field_name='business_user__id')
+    min_price = filters.NumberFilter(field_name='details__price', lookup_expr='gte')
+    max_delivery_time = filters.NumberFilter(field_name='details__delivery_time_in_days', lookup_expr='lte')
+
+    class Meta:
+        model = Offer
+        fields = ['creator_id', 'min_price', 'max_delivery_time', 'business_user']
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -16,19 +28,28 @@ class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericView
 
 
 class OfferViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        """List offers with pagination support"""
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def retrieve(self, request, *args, **kwargs):
         """get a single offer with full details"""
         offer = self.get_object()
         serializer = OfferRetrieveFullSerializer(offer, context={'request': request})
         return Response(serializer.data)
-    
-    """ViewSet for Offers"""
+
+    # ViewSet for Offers
     queryset = Offer.objects.filter(is_active=True)
     permission_classes = [IsBusinessUserOrReadOnly]
-    filterset_fields = ['business_user']
+    filterset_class = OfferFilterSet
     search_fields = ['title', 'description']
-    ordering_fields = ['created_at']
-
+    ordering_fields = ['created_at', 'updated_at', 'min_price']
 
     def get_serializer_class(self):
         if self.action == 'list':
