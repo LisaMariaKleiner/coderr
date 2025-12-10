@@ -117,14 +117,16 @@ class CustomerProfileListSerializer(serializers.Serializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     file = serializers.SerializerMethodField()
-    location = serializers.CharField(read_only=True, default='')
-    tel = serializers.CharField(read_only=True, default='')
-    description = serializers.CharField(read_only=True, default='')
-    working_hours = serializers.CharField(read_only=True, default='')
+    uploaded_at = serializers.SerializerMethodField()
     type = serializers.SerializerMethodField()
 
     def get_file(self, obj):
-        return obj.profile_image.url if obj.profile_image else None
+        return obj.profile_image.name if obj.profile_image else None
+
+    def get_uploaded_at(self, obj):
+        if obj.profile_image and hasattr(obj.profile_image, 'field'):
+            return obj.updated_at.strftime('%Y-%m-%dT%H:%M:%S') if obj.updated_at else ''
+        return ''
 
     def get_type(self, obj):
         return 'customer'
@@ -133,13 +135,18 @@ class CustomerProfileListSerializer(serializers.Serializer):
         data = super().to_representation(instance)
         data['first_name'] = getattr(instance, 'first_name', '') or ''
         data['last_name'] = getattr(instance, 'last_name', '') or ''
-        data['location'] = getattr(instance, 'location', '') or ''
-        data['tel'] = getattr(instance, 'phone', '') or ''
-        data['description'] = getattr(instance, 'description', '') or ''
-        data['working_hours'] = getattr(instance, 'working_hours', '') or ''
         data['file'] = self.get_file(instance)
+        data['uploaded_at'] = self.get_uploaded_at(instance)
         data['type'] = self.get_type(instance)
-        return data
+        return {
+            'user': data['user'],
+            'username': data['username'],
+            'first_name': data['first_name'],
+            'last_name': data['last_name'],
+            'file': data['file'],
+            'uploaded_at': data['uploaded_at'],
+            'type': data['type'],
+        }
 
 
 class ProfileDetailSerializer(serializers.Serializer):
