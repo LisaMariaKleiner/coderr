@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
-class PlatformInfoConfig(AppConfig):
+class BaseInfoConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'platform_info_app'
+    name = 'base_info_app'

@@ -8,7 +8,7 @@ from offers_app.models import Offer
 from reviews_app.models import Review
 
 class BaseInfoView(APIView):
-    """View to retrieve basic platform information"""
+    """View to retrieve basic information"""
     authentication_classes = []
     permission_classes = []
 
@@ -25,7 +25,6 @@ class BaseInfoView(APIView):
                 "average_rating": average_rating,
                 "business_profile_count": business_profile_count,
                 "offer_count": offer_count,
-                "detail": "Die Basisinformationen wurden erfolgreich abgerufen."
             }, status=status.HTTP_200_OK)
         except Exception:
             return Response({"detail": "Interner Serverfehler."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
