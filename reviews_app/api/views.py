@@ -7,8 +7,21 @@ from offers_app.models import Offer
 from .permissions import IsReviewerOrReadOnly
 
 
+
+
 class ReviewViewSet(viewsets.ModelViewSet):
-    """ViewSet for Reviews"""
+    pagination_class = None
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticated, IsReviewerOrReadOnly]
+    filterset_fields = ['offer__business_user', 'reviewer', 'rating']
+    ordering_fields = ['rating', 'created_at', 'updated_at']
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response([serializer.data])
+
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
@@ -70,13 +83,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticated, IsReviewerOrReadOnly]
-    filterset_fields = ['offer__business_user', 'reviewer', 'rating']
-    ordering_fields = ['rating', 'created_at', 'updated_at']
 
     def get_queryset(self):
         queryset = super().get_queryset()
