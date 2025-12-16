@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'offers_app',
     'orders_app',
     'reviews_app',
-    'platform_info_app'
+    'base_info_app'
 ]
 
 MIDDLEWARE = [
@@ -137,6 +137,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    'DATETIME_FORMAT': "%Y-%m-%dT%H:%M:%SZ",
 }
 
 # CORS Settings - Adjust for production!
