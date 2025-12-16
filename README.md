@@ -20,7 +20,7 @@ project.Coderr/
 ├── offers_app/               # Offers (CRUD)
 ├── orders_app/               # Orders
 ├── reviews_app/              # Reviews
-├── platform_info_app/        # Platform Info
+├── base_info_app/            # Base Info
 ├── shared/                   # Shared utilities
 ├── media/                    # Hochgeladene Dateien
 └── static/                   # Statische Backend-Dateien
@@ -66,24 +66,6 @@ python manage.py runserver
 
 Backend: `http://127.0.0.1:8000/`
 Admin Panel: `http://127.0.0.1:8000/admin/`
-
-## 🎨 Frontend Setup
-
-You need a simple HTTP server for the frontend:
-
-### Option 1: Live Server (VS Code Extension)
-
-- Install "Live Server" extension
-- Right-click `frontend/index.html` → "Open with Live Server"
-
-### Option 2: Python HTTP Server
-
-```powershell
-cd frontend
-python -m http.server 5500
-```
-
-Frontend: `http://127.0.0.1:5500/`
 
 ## 📡 API Endpoints
 
