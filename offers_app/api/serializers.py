@@ -35,19 +35,30 @@ class OfferRetrieveFullSerializer(serializers.ModelSerializer):
 
 """Serializer for detailed offer retrieval including all detail fields"""
 class OfferRetrieveDetailSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
+
+    def get_price(self, obj):
+        if obj.price == int(obj.price):
+            return int(obj.price)
+        return float(obj.price)
 
 
 """Serializer for updating OfferDetail"""
 class OfferDetailUpdateSerializer(serializers.ModelSerializer):
-    price = serializers.FloatField()
+    price = serializers.SerializerMethodField()
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
+
+    def get_price(self, obj):
+        if obj.price == int(obj.price):
+            return int(obj.price)
+        return float(obj.price)
 
 """Serializer for updating Offer along with its details"""
 class OfferUpdateSerializer(serializers.ModelSerializer):
@@ -65,21 +76,17 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         if details_data is not None:
-            existing_details = list(instance.details.all())
-            existing_by_type = {d.offer_type: d for d in existing_details}
-            updated_types = set()
+            existing_details = {str(d.id): d for d in instance.details.all()}
             for detail in details_data:
-                offer_type = detail.get('offer_type')
-                if offer_type in existing_by_type:
-                    detail_instance = existing_by_type[offer_type]
+                detail_id = str(detail.get('id')) if detail.get('id') is not None else None
+                if detail_id and detail_id in existing_details:
+                    detail_instance = existing_details[detail_id]
                     for attr, value in detail.items():
-                        if attr != 'id':
+                        if attr not in ['id', 'offer']:
                             setattr(detail_instance, attr, value)
                     detail_instance.save()
-                    updated_types.add(offer_type)
                 else:
                     OfferDetail.objects.create(offer=instance, **detail)
-
         return instance
 
 
@@ -128,21 +135,31 @@ class OfferListSerializer(serializers.ModelSerializer):
 
 """Serializer for compact OfferDetail representation"""
 class OfferDetailCompactSerializer(serializers.ModelSerializer):
-    price = serializers.FloatField()
+    price = serializers.SerializerMethodField()
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
+
+    def get_price(self, obj):
+        if obj.price == int(obj.price):
+            return int(obj.price)
+        return float(obj.price)
 
 
 """Serializer for compact Offer representation"""
 class OfferDetailSerializer(serializers.ModelSerializer):
-    price = serializers.FloatField()
+    price = serializers.SerializerMethodField()
 
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
+
+    def get_price(self, obj):
+        if obj.price == int(obj.price):
+            return int(obj.price)
+        return float(obj.price)
 
 
 """Serializer for compact Offer representation"""
@@ -156,6 +173,10 @@ class OfferCompactSerializer(serializers.ModelSerializer):
 
 """Serializer for creating and updating Offers along with their details"""
 class OfferSerializer(serializers.ModelSerializer):
+    def validate_details(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Ein Angebot muss mindestens 3 Details enthalten.")
+        return value
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
     details = OfferDetailSerializer(many=True)
     min_price = serializers.SerializerMethodField(read_only=True)
