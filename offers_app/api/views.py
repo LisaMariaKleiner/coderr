@@ -45,11 +45,22 @@ class OfferViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     # ViewSet for Offers
-    queryset = Offer.objects.filter(is_active=True)
-    permission_classes = [IsBusinessUserOrReadOnly]
+    def get_queryset(self):
+        from django.db.models import Min
+        qs = Offer.objects.filter(is_active=True)
+        # Nur Offers mit mindestens einem Detail
+        qs = qs.annotate(
+            min_price=Min('details__price'),
+            min_delivery_time=Min('details__delivery_time_in_days')
+        ).filter(min_price__isnull=False, min_delivery_time__isnull=False)
+        # Fallback-Ordering für stabile Pagination
+        qs = qs.order_by('-updated_at', 'id')
+        return qs
+    #permission_classes = [IsBusinessUserOrReadOnly]
+    permission_classes = [permissions.AllowAny]
     filterset_class = OfferFilterSet
     search_fields = ['title', 'description']
-    ordering_fields = ['created_at', 'updated_at', 'min_price']
+    ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -70,13 +81,15 @@ class OfferViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         offer = instance
         details = offer.details.all()
+        def price_as_int_or_float(val):
+            return int(val) if float(val).is_integer() else float(val)
         details_list = [
             {
                 'id': d.id,
                 'title': d.title,
                 'revisions': d.revisions,
                 'delivery_time_in_days': d.delivery_time_in_days,
-                'price': float(d.price),
+                'price': price_as_int_or_float(d.price),
                 'features': d.features,
                 'offer_type': d.offer_type
             }
@@ -99,13 +112,15 @@ class OfferViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         offer = serializer.instance
         details = offer.details.all()
+        def price_as_int_or_float(val):
+            return int(val) if float(val).is_integer() else float(val)
         details_list = [
             {
                 'id': d.id,
                 'title': d.title,
                 'revisions': d.revisions,
                 'delivery_time_in_days': d.delivery_time_in_days,
-                'price': float(d.price),
+                'price': price_as_int_or_float(d.price),
                 'features': d.features,
                 'offer_type': d.offer_type
             }
@@ -127,13 +142,15 @@ class OfferViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         offer = serializer.instance
         details = offer.details.all()
+        def price_as_int_or_float(val):
+            return int(val) if float(val).is_integer() else float(val)
         details_list = [
             {
                 'id': d.id,
                 'title': d.title,
                 'revisions': d.revisions,
                 'delivery_time_in_days': d.delivery_time_in_days,
-                'price': float(d.price),
+                'price': price_as_int_or_float(d.price),
                 'features': d.features,
                 'offer_type': d.offer_type
             }
