@@ -13,6 +13,8 @@ from rest_framework.pagination import PageNumberPagination
 
 class OrderViewSet(viewsets.ModelViewSet):
 
+    pagination_class = None
+
     @action(detail=False, methods=['get'], url_path='order-count/(?P<business_user_id>[^/.]+)')
     def order_count(self, request, business_user_id=None):
         """Get the count of orders for a specific business user with status 'in_progress'"""
