@@ -28,7 +28,10 @@ class OfferRetrieveFullSerializer(serializers.ModelSerializer):
         ]
 
     def get_min_price(self, obj):
-        return min([d.price for d in obj.details.all()]) if obj.details.exists() else None
+        if not obj.details.exists():
+            return None
+        min_price = min([d.price for d in obj.details.all()])
+        return int(min_price) if float(min_price).is_integer() else float(min_price)
 
     def get_min_delivery_time(self, obj):
         return min([d.delivery_time_in_days for d in obj.details.all()]) if obj.details.exists() else None
@@ -49,16 +52,11 @@ class OfferRetrieveDetailSerializer(serializers.ModelSerializer):
 
 """Serializer for updating OfferDetail"""
 class OfferDetailUpdateSerializer(serializers.ModelSerializer):
-    price = serializers.SerializerMethodField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['id']
-
-    def get_price(self, obj):
-        if obj.price == int(obj.price):
-            return int(obj.price)
-        return float(obj.price)
 
 """Serializer for updating Offer along with its details"""
 class OfferUpdateSerializer(serializers.ModelSerializer):
@@ -126,7 +124,10 @@ class OfferListSerializer(serializers.ModelSerializer):
 
     def get_min_price(self, obj):
         prices = obj.details.values_list('price', flat=True)
-        return min(prices) if prices else None
+        if not prices:
+            return None
+        min_price = min(prices)
+        return int(min_price) if float(min_price).is_integer() else float(min_price)
 
     def get_min_delivery_time(self, obj):
         times = obj.details.values_list('delivery_time_in_days', flat=True)
@@ -150,7 +151,6 @@ class OfferDetailCompactSerializer(serializers.ModelSerializer):
 """Serializer for compact Offer representation"""
 class OfferDetailSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
-
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
@@ -203,7 +203,10 @@ class OfferSerializer(serializers.ModelSerializer):
 
     def get_min_price(self, obj):
         prices = obj.details.values_list('price', flat=True)
-        return min(prices) if prices else None
+        if not prices:
+            return None
+        min_price = min(prices)
+        return int(min_price) if float(min_price).is_integer() else float(min_price)
 
     def get_min_delivery_time(self, obj):
         times = obj.details.values_list('delivery_time_in_days', flat=True)

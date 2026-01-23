@@ -2,14 +2,7 @@ from django_filters import rest_framework as filters
 
 from ..models import Offer, OfferDetail
 
-class OfferFilterSet(filters.FilterSet):
-    creator_id = filters.NumberFilter(field_name='business_user__id')
-    min_price = filters.NumberFilter(field_name='details__price', lookup_expr='gte')
-    max_delivery_time = filters.NumberFilter(field_name='details__delivery_time_in_days', lookup_expr='lte')
 
-    class Meta:
-        model = Offer
-        fields = ['creator_id', 'min_price', 'max_delivery_time', 'business_user']
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,6 +12,18 @@ from .serializers import (
     OfferRetrieveFullSerializer, OfferDetailSerializer
 )
 from .permissions import IsBusinessUserOrReadOnly
+
+
+class OfferFilterSet(filters.FilterSet):
+    creator_id = filters.NumberFilter(field_name='business_user__id')
+    min_price = filters.NumberFilter(method='filter_min_price')
+    def filter_min_price(self, queryset, name, value):
+            return queryset.filter(min_price__gte=value)
+    max_delivery_time = filters.NumberFilter(field_name='details__delivery_time_in_days', lookup_expr='lte')
+
+    class Meta:
+        model = Offer
+        fields = ['creator_id', 'min_price', 'max_delivery_time', 'business_user']
 
 
 class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
@@ -56,8 +61,7 @@ class OfferViewSet(viewsets.ModelViewSet):
         # Fallback-Ordering für stabile Pagination
         qs = qs.order_by('-updated_at', 'id')
         return qs
-    #permission_classes = [IsBusinessUserOrReadOnly]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     filterset_class = OfferFilterSet
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
