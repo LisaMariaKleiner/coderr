@@ -310,8 +310,8 @@ class ProfileUpdateSerializer(serializers.Serializer):
             data = {
                 'user': safe_str(getattr(user, 'id', '')),
                 'username': safe_str(getattr(user, 'username', '')),
-                'first_name': safe_str(getattr(profile, 'first_name', '')) if profile else '',
-                'last_name': safe_str(getattr(profile, 'last_name', '')) if profile else '',
+                'first_name': safe_str(getattr(user, 'first_name', '')),
+                'last_name': safe_str(getattr(user, 'last_name', '')),
                 'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
                 'location': safe_str(getattr(profile, 'location', '')) if profile else '',
                 'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',

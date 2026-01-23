@@ -79,7 +79,7 @@ class ProfileViewSet(viewsets.ViewSet):
             update_serializer = ProfileUpdateSerializer(profile.user, data=request.data, partial=True)
             if update_serializer.is_valid():
                 update_serializer.save()
-                response_serializer = ProfileDetailSerializer(profile.user)
+                response_serializer = ProfileUpdateSerializer(profile.user)
                 return Response(response_serializer.data, status=status.HTTP_200_OK)
             return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
