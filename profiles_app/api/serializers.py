@@ -299,46 +299,36 @@ class ProfileUpdateSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         """
-        PATCH-Response: Alle Felder sind nie null, sondern immer mindestens ein leerer String.
-        Robust gegen fehlende Attribute.
+        PATCH-Response: Einheitliche Struktur für business und customer.
+        Alle Felder wie im Beispiel, fehlende Werte als leerer String oder None für file.
         """
         user = instance
         def safe_str(val):
             return val if val is not None else ''
         if user.user_type == 'business':
             profile = getattr(user, 'business_profile', None)
-            data = {
-                'user': safe_str(getattr(user, 'id', '')),
-                'username': safe_str(getattr(user, 'username', '')),
-                'first_name': safe_str(getattr(user, 'first_name', '')),
-                'last_name': safe_str(getattr(user, 'last_name', '')),
-                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
-                'location': safe_str(getattr(profile, 'location', '')) if profile else '',
-                'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',
-                'description': safe_str(getattr(profile, 'description', '')) if profile else '',
-                'working_hours': safe_str(getattr(profile, 'working_hours', '')) if profile else '',
-                'type': safe_str(getattr(user, 'user_type', '')),
-                'email': safe_str(getattr(user, 'email', '')),
-                'created_at': '',
-            }
-            dt = getattr(user, 'date_joined', None) or getattr(user, 'created_at', None)
-            if dt:
-                import pytz
-                dt = dt.astimezone(pytz.UTC).replace(microsecond=0)
-                data['created_at'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-            return data
         else:
             profile = getattr(user, 'customer_profile', None)
-            data = {
-                'user': safe_str(getattr(user, 'id', '')),
-                'username': safe_str(getattr(user, 'username', '')),
-                'first_name': safe_str(getattr(profile, 'first_name', '')) if profile else '',
-                'last_name': safe_str(getattr(profile, 'last_name', '')) if profile else '',
-                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
-                'type': safe_str(getattr(user, 'user_type', '')),
-                'email': safe_str(getattr(user, 'email', '')),
-            }
-            return data
+        data = {
+            'user': safe_str(getattr(user, 'id', '')),
+            'username': safe_str(getattr(user, 'username', '')),
+            'first_name': safe_str(getattr(profile, 'first_name', getattr(user, 'first_name', ''))) if profile else safe_str(getattr(user, 'first_name', '')),
+            'last_name': safe_str(getattr(profile, 'last_name', getattr(user, 'last_name', ''))) if profile else safe_str(getattr(user, 'last_name', '')),
+            'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
+            'location': safe_str(getattr(profile, 'location', '')) if profile else '',
+            'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',
+            'description': safe_str(getattr(profile, 'description', '')) if profile else '',
+            'working_hours': safe_str(getattr(profile, 'working_hours', '')) if profile else '',
+            'type': safe_str(getattr(user, 'user_type', '')),
+            'email': safe_str(getattr(user, 'email', '')),
+            'created_at': '',
+        }
+        dt = getattr(user, 'date_joined', None) or getattr(user, 'created_at', None)
+        if dt:
+            import pytz
+            dt = dt.astimezone(pytz.UTC).replace(microsecond=0)
+            data['created_at'] = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return data
 
 
 class ProfileSerializer(serializers.Serializer):
