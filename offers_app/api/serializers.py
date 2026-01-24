@@ -151,6 +151,9 @@ class OfferDetailCompactSerializer(serializers.ModelSerializer):
 """Serializer for compact Offer representation"""
 class OfferDetailSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
+    def validate_price(self, value):
+        if value is None:
+            raise serializers.ValidationError("Preis darf nicht leer sein.")
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
