@@ -336,6 +336,7 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 'last_name': safe_str(getattr(profile, 'last_name', '')) if profile else '',
                 'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
                 'type': safe_str(getattr(user, 'user_type', '')),
+                'email': safe_str(getattr(user, 'email', '')),
             }
             return data
 
