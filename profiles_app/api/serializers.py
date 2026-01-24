@@ -309,20 +309,36 @@ class ProfileUpdateSerializer(serializers.Serializer):
             profile = getattr(user, 'business_profile', None)
         else:
             profile = getattr(user, 'customer_profile', None)
-        data = {
-            'user': safe_str(getattr(user, 'id', '')),
-            'username': safe_str(getattr(user, 'username', '')),
-            'first_name': safe_str(getattr(profile, 'first_name', getattr(user, 'first_name', ''))) if profile else safe_str(getattr(user, 'first_name', '')),
-            'last_name': safe_str(getattr(profile, 'last_name', getattr(user, 'last_name', ''))) if profile else safe_str(getattr(user, 'last_name', '')),
-            'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
-            'location': safe_str(getattr(profile, 'location', '')) if profile else '',
-            'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',
-            'description': safe_str(getattr(profile, 'description', '')) if profile else '',
-            'working_hours': safe_str(getattr(profile, 'working_hours', '')) if profile else '',
-            'type': safe_str(getattr(user, 'user_type', '')),
-            'email': safe_str(getattr(user, 'email', '')),
-            'created_at': '',
-        }
+        if user.user_type == 'business':
+            data = {
+                'user': safe_str(getattr(user, 'id', '')),
+                'username': safe_str(getattr(user, 'username', '')),
+                'first_name': safe_str(getattr(user, 'first_name', '')),
+                'last_name': safe_str(getattr(user, 'last_name', '')),
+                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
+                'location': safe_str(getattr(profile, 'location', '')) if profile else '',
+                'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',
+                'description': safe_str(getattr(profile, 'description', '')) if profile else '',
+                'working_hours': safe_str(getattr(profile, 'working_hours', '')) if profile else '',
+                'type': safe_str(getattr(user, 'user_type', '')),
+                'email': safe_str(getattr(user, 'email', '')),
+                'created_at': '',
+            }
+        else:
+            data = {
+                'user': safe_str(getattr(user, 'id', '')),
+                'username': safe_str(getattr(user, 'username', '')),
+                'first_name': safe_str(getattr(profile, 'first_name', getattr(user, 'first_name', ''))) if profile else safe_str(getattr(user, 'first_name', '')),
+                'last_name': safe_str(getattr(profile, 'last_name', getattr(user, 'last_name', ''))) if profile else safe_str(getattr(user, 'last_name', '')),
+                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
+                'location': safe_str(getattr(profile, 'location', '')) if profile else '',
+                'tel': safe_str(getattr(profile, 'phone', '')) if profile else '',
+                'description': safe_str(getattr(profile, 'description', '')) if profile else '',
+                'working_hours': safe_str(getattr(profile, 'working_hours', '')) if profile else '',
+                'type': safe_str(getattr(user, 'user_type', '')),
+                'email': safe_str(getattr(user, 'email', '')),
+                'created_at': '',
+            }
         dt = getattr(user, 'date_joined', None) or getattr(user, 'created_at', None)
         if dt:
             import pytz
