@@ -1,62 +1,143 @@
-# Coderr - Freelancer Platform
+# Coderr – Freelancer Plattform
 
-A full-stack project with Django REST Framework backend and Vanilla JavaScript frontend.
+Vollständiges Full-Stack-Projekt mit Django REST Framework (Backend) und Vanilla JavaScript (Frontend).
 
-## 📁 Projektstruktur
+## 📁 Projektstruktur (Stand 2026)
 
 ```
 project.Coderr/
+├── authentication_app/       # Registrierung, Login
+│   └── api/
+├── base_info_app/            # Plattform-Informationen
+│   └── api/
+├── core/                     # Django-Konfiguration & Settings
 ├── frontend/                 # Vanilla JS Frontend
-│   ├── index.html
-│   ├── scripts/
-│   ├── styles/
-│   └── shared/
-│
+│   ├── *.html                # Hauptseiten
+│   ├── scripts/              # Seitenspezifische JS
+│   ├── styles/               # CSS für Seiten
+│   └── shared/               # Gemeinsame Scripts & Styles
+│       ├── scripts/          # z.B. api.js, auth.js, config.js
+│       └── styles/
 ├── manage.py                 # Django Management
+├── media/                    # Hochgeladene Dateien (z.B. Profilbilder)
+│   └── profiles/customer/
+├── offers_app/               # Angebote (Offers)
+│   └── api/
+├── orders_app/               # Bestellungen (Orders)
+│   └── api/
+├── profiles_app/             # Nutzer- & Profilverwaltung
+│   └── api/
+├── reviews_app/              # Bewertungen
+│   └── api/
 ├── requirements.txt          # Python-Abhängigkeiten
-├── core/                     # Django core config
-├── authentication_app/       # Login & Registration
-├── profiles_app/             # User & Profile Management
-├── offers_app/               # Offers (CRUD)
-├── orders_app/               # Orders
-├── reviews_app/              # Reviews
-├── base_info_app/            # Base Info
-├── shared/                   # Shared utilities
-├── media/                    # Hochgeladene Dateien
-└── static/                   # Statische Backend-Dateien
+├── static/                   # Statische Backend-Dateien
+└── db.sqlite3                # SQLite-DB (dev)
 ```
 
-## 🚀 Backend Setup
+## 🚀 Backend-Setup (Django) – Schritt für Schritt (Windows, Linux, Mac)
 
-### 1. Virtuelle Umgebung erstellen
+### 1. Python installieren
 
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate
-```
+- **Windows:**
+  - Lade Python von https://www.python.org/downloads/ herunter und installiere es.
+  - Achte darauf, beim Setup „Add Python to PATH“ auszuwählen!
+- **Linux/Mac:**
+  - Meist ist Python schon installiert. Prüfe mit:
+    ```bash
+    python3 --version
+    ```
+  - Falls nicht, installiere es z.B. mit `sudo apt install python3` (Linux) oder `brew install python` (Mac).
 
-### 2. Abhängigkeiten installieren
+### 2. Virtuelle Umgebung anlegen
 
-```powershell
-pip install -r requirements.txt
-```
+Im Projektordner im Terminal/PowerShell:
 
-### 3. Umgebungsvariablen
+- **Windows:**
+  ```powershell
+  python -m venv venv
+  .\venv\Scripts\Activate
+  ```
+- **Linux/Mac:**
+  ```bash
+  python3 -m venv venv
+  source venv/bin/activate
+  ```
 
-Kopiere `.env.example` zu `.env` und setze deinen `SECRET_KEY`.
+**Hinweis:**
 
-### 4. Datenbank migrieren
+- Nach Aktivierung steht links im Terminal `(venv)`.
+- Falls „python nicht gefunden“: Starte Terminal neu oder prüfe, ob Python installiert ist.
 
-```powershell
-python manage.py makemigrations
-python manage.py migrate
-```
+### 3. Abhängigkeiten installieren
 
-### 5. Superuser anlegen (optional)
+Im aktivierten venv:
 
-```powershell
-python manage.py createsuperuser
-```
+- **Windows:**
+  ```powershell
+  pip install -r requirements.txt
+  ```
+- **Linux/Mac:**
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+**Fehler?**
+
+- Prüfe, ob du im richtigen Ordner bist und die venv aktiv ist.
+
+### 4. (Optional) Umgebungsvariablen setzen
+
+- Lege eine Datei `.env` im Projektordner an (z.B. für SECRET_KEY, DEBUG, ALLOWED_HOSTS).
+- Beispiel-Inhalt:
+  ```env
+  SECRET_KEY=dein-geheimer-key
+  DEBUG=True
+  ALLOWED_HOSTS=localhost,127.0.0.1
+  ```
+
+### 5. Migrationen anwenden (Datenbank vorbereiten)
+
+- **Windows:**
+  ```powershell
+  python manage.py makemigrations
+  python manage.py migrate
+  ```
+- **Linux/Mac:**
+  ```bash
+  python manage.py makemigrations
+  python manage.py migrate
+  ```
+
+### 6. Superuser anlegen (optional, für Admin-Login)
+
+- **Windows:**
+  ```powershell
+  python manage.py createsuperuser
+  ```
+- **Linux/Mac:**
+  ```bash
+  python manage.py createsuperuser
+  ```
+
+Folge den Anweisungen im Terminal (Benutzername, E-Mail, Passwort).
+
+### 7. Server starten
+
+- **Windows:**
+  ```powershell
+  python manage.py runserver
+  ```
+- **Linux/Mac:**
+  ```bash
+  python manage.py runserver
+  ```
+
+**Erfolg:**
+
+- Im Terminal steht: „Starting development server at http://127.0.0.1:8000/“
+- Öffne im Browser:
+  - Backend: http://127.0.0.1:8000/
+  - Admin: http://127.0.0.1:8000/admin/
 
 ### 6. Server starten
 
@@ -67,105 +148,77 @@ python manage.py runserver
 Backend: `http://127.0.0.1:8000/`
 Admin Panel: `http://127.0.0.1:8000/admin/`
 
-## 📡 API Endpoints
+## 📡 API-Endpoints (Auszug)
 
-### Authentication
+**Authentication**
 
-- `POST /api/login/` - Login
-- `POST /api/registration/` - Registration
-- `POST /api/logout/` - Logout (Token required)
+- `POST   /api/login/` – Login
+- `POST   /api/registration/` – Registrierung
+- `POST   /api/logout/` – Logout (Token)
 
-### Users & Profiles
+**Profile**
 
-- `GET/PUT/PATCH /api/profiles/business/` - Business profile CRUD
-- `GET/PUT/PATCH /api/profiles/customer/` - Customer profile CRUD
-- `GET /api/profiles/business/me/` - Own business profile
-- `GET /api/profiles/customer/me/` - Own customer profile
+- `GET/PUT/PATCH /api/profiles/business/` – Business-Profil CRUD
+- `GET/PUT/PATCH /api/profiles/customer/` – Customer-Profil CRUD
+- `GET /api/profiles/business/me/` – Eigenes Business-Profil
+- `GET /api/profiles/customer/me/` – Eigenes Customer-Profil
 
-### Offers
+**Offers**
 
-- `GET /api/offers/` - List all offers
-- `POST /api/offers/` - Create new offer (business only)
-- `GET /api/offers/{id}/` - Single offer
-- `PUT/PATCH /api/offers/{id}/` - Edit offer (owner only)
-- `DELETE /api/offers/{id}/` - Delete offer (owner only)
-- `GET /api/offers/my_offers/` - Own offers
+- `GET    /api/offers/` – Alle Angebote (Filter, Suche, Pagination)
+- `POST   /api/offers/` – Neues Angebot (nur Business)
+- `GET    /api/offers/{id}/` – Einzelnes Angebot
+- `PUT/PATCH /api/offers/{id}/` – Angebot bearbeiten (Owner)
+- `DELETE /api/offers/{id}/` – Angebot löschen (Owner)
+- `GET    /api/offers/my_offers/`– Eigene Angebote (Business)
 
-### Orders
+**Orders**
 
-- `GET /api/orders/` - List all orders (filtered by user)
-- `POST /api/orders/` - Create new order
-- `GET /api/orders/{id}/` - Single order
-- `PATCH /api/orders/{id}/update_status/` - Update status (business only)
+- `GET    /api/orders/` – Bestellungen (User-Filter)
+- `POST   /api/orders/` – Neue Bestellung
+- `GET    /api/orders/{id}/` – Einzelne Bestellung
+- `PATCH  /api/orders/{id}/update_status/` – Status ändern (Business)
 
-### Reviews
+**Reviews**
 
-- `GET /api/reviews/` - List all reviews
-- `POST /api/reviews/` - Create new review (customer only)
-- `GET /api/reviews/{id}/` - Single review
-- `PUT/PATCH /api/reviews/{id}/` - Edit review (owner only)
-- `DELETE /api/reviews/{id}/` - Delete review (owner only)
+- `GET    /api/reviews/` – Alle Bewertungen
+- `POST   /api/reviews/` – Neue Bewertung (Customer)
+- `GET    /api/reviews/{id}/` – Einzelne Bewertung
+- `PUT/PATCH /api/reviews/{id}/` – Bewertung bearbeiten (Owner)
+- `DELETE /api/reviews/{id}/` – Bewertung löschen (Owner)
 
-## 🔐 Authentication
-
-The backend uses token authentication:
-
-```javascript
-// Login
-fetch("http://127.0.0.1:8000/api/login/", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ username: "user", password: "pass" }),
-})
-  .then((res) => res.json())
-  .then((data) => {
-    localStorage.setItem("auth-token", data.token);
-  });
-
-// API calls with token
-fetch("http://127.0.0.1:8000/api/offers/", {
-  headers: {
-    Authorization: `Token ${localStorage.getItem("auth-token")}`,
-  },
-});
-```
-
-## 🛠️ Useful Commands
+## 🛠️ Nützliche Kommandos
 
 ```powershell
-# Create new migrations
+# Migrationen erstellen
 python manage.py makemigrations
-
-# Apply migrations
+# Migrationen anwenden
 python manage.py migrate
-
-# Open shell
+# Shell öffnen
 python manage.py shell
-
-# Run tests
+# Tests ausführen
 python manage.py test
-
-# Collect static files (for production)
+# Statische Dateien sammeln (Production)
 python manage.py collectstatic
 ```
 
 ## 📦 Tech Stack
 
-### Backend
+**Backend:**
 
 - Django 5.0
 - Django REST Framework 3.14
-- Token Authentication
-- CORS Headers
-- SQLite (development) / PostgreSQL (production ready)
+- Token Auth
+- django-cors-headers, django-filter
+- SQLite (dev) / PostgreSQL (prod-ready)
 
-### Frontend
+**Frontend:**
 
 - Vanilla JavaScript (ES6+)
 - CSS3
 - Fetch API
 
-## 🔧 CORS Configuration
+## 🔧 CORS-Konfiguration
 
 Erlaubte Origins in `core/settings.py`:
 
@@ -174,33 +227,32 @@ Erlaubte Origins in `core/settings.py`:
 - `http://localhost:5500`
 - `http://127.0.0.1:5500`
 
-For other ports/URLs: adjust `CORS_ALLOWED_ORIGINS` in `settings.py`.
+Weitere Ports/URLs ggf. in `CORS_ALLOWED_ORIGINS` ergänzen.
 
-## 📝 Development Workflow
+## 📝 Entwicklungs-Workflow
 
-1. **Start backend first**: `python manage.py runserver`
-2. **Start frontend**: Live Server or HTTP server
-3. **Test API in browser**: `http://127.0.0.1:8000/api/`
-4. **Test frontend**: `http://127.0.0.1:5500/`
+1. Backend starten: `python manage.py runserver`
+2. Frontend starten: Live Server/HTTP-Server im `frontend/`-Ordner (z.B. mit VSCode Extension)
+3. API testen: http://127.0.0.1:8000/api/
+4. Frontend testen: http://127.0.0.1:5500/
 
-## 🚧 Production Deployment
+## 🚧 Deployment (Production)
 
-### Backend (Django)
+**Backend:**
 
-- Set `DEBUG = False`
-- Load secret key via environment variable
-- Set up PostgreSQL/MySQL database
-- Use Gunicorn/uWSGI as WSGI server
-- Use Nginx as reverse proxy
-- Enable HTTPS
+- `DEBUG = False` setzen
+- SECRET_KEY als Umgebungsvariable
+- PostgreSQL/MySQL einrichten
+- Gunicorn/uWSGI + Nginx
+- HTTPS aktivieren
 
-### Frontend
+**Frontend:**
 
-- Host static files on CDN/web server
-- Set `API_BASE_URL` in `shared/scripts/config.js` to production URL
+- Statische Dateien auf Webserver/CDN
+- `API_BASE_URL` in `frontend/shared/scripts/config.js` auf Produktiv-URL setzen
 
-## 📚 Further Documentation
+## 📚 Weitere Doku & Links
 
-- [Django Docs](https://docs.djangoproject.com/)
+- [Django Doku](https://docs.djangoproject.com/)
 - [Django REST Framework](https://www.django-rest-framework.org/)
-- [API Browser](http://127.0.0.1:8000/api/) (when backend is running)
+- [API-Browser](http://127.0.0.1:8000/api/) (wenn Backend läuft)
