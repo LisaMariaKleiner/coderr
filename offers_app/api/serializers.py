@@ -179,6 +179,10 @@ class OfferSerializer(serializers.ModelSerializer):
     def validate_details(self, value):
         if len(value) < 3:
             raise serializers.ValidationError("Ein Angebot muss mindestens 3 Details enthalten.")
+        for detail in value:
+            price = detail.get('price')
+            if price is None or float(price) <= 0:
+                raise serializers.ValidationError("Jedes Angebots-Detail muss einen Preis > 0 haben.")
         return value
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
     details = OfferDetailSerializer(many=True)
