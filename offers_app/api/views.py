@@ -53,15 +53,13 @@ class OfferViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         from django.db.models import Min
         qs = Offer.objects.filter(is_active=True)
-        # Nur Offers mit mindestens einem Detail
         qs = qs.annotate(
             min_price=Min('details__price'),
             min_delivery_time=Min('details__delivery_time_in_days')
         ).filter(min_price__isnull=False, min_delivery_time__isnull=False)
-        # Fallback-Ordering für stabile Pagination
         qs = qs.order_by('-updated_at', 'id')
         return qs
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     filterset_class = OfferFilterSet
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
