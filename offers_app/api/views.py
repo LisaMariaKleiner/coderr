@@ -4,8 +4,16 @@ from ..models import Offer, OfferDetail
 
 
 from rest_framework import viewsets, permissions, mixins
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotAuthenticated
+
+
+
+from rest_framework.exceptions import NotFound
+
 from ..models import Offer, OfferDetail
 from .serializers import (
     OfferSerializer, OfferCompactSerializer, OfferListSerializer, OfferUpdateSerializer,
@@ -29,15 +37,40 @@ class OfferFilterSet(filters.FilterSet):
 class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
-    permission_classes = [permissions.AllowAny] 
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class OfferViewSet(viewsets.ModelViewSet):
+    def destroy(self, request, *args, **kwargs):
+            # 1. Authentifizierung prüfen
+        if not request.user.is_authenticated:
+            raise NotAuthenticated("Authentication credentials were not provided.")
+            # 2. Business-User prüfen
+        if getattr(request.user, 'user_type', None) != 'business':
+            raise PermissionDenied("Nur Business-User dürfen Angebote löschen.")
+            # 3. Objekt suchen
+        try:
+            instance = self.get_object()
+        except self.queryset.model.DoesNotExist:
+            raise NotFound("Angebot nicht gefunden.")
+            # 4. Ownership prüfen
+        if instance.business_user != request.user:
+            raise PermissionDenied("Nur der Ersteller darf dieses Angebot löschen.")
+        self.perform_destroy(instance)
+        from rest_framework.response import Response
+        return Response(status=204)
+    pagination_class = PageNumberPagination
+    permission_classes = [permissions.IsAuthenticated, IsBusinessUserOrReadOnly]
+    filterset_class = OfferFilterSet
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
     def list(self, request, *args, **kwargs):
         """List offers with pagination support"""
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
+        print(f"[DEBUG] queryset count: {queryset.count()}")
         if page is not None:
+            print(f"[DEBUG] page length: {len(page)}")
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
@@ -49,7 +82,6 @@ class OfferViewSet(viewsets.ModelViewSet):
         serializer = OfferRetrieveFullSerializer(offer, context={'request': request})
         return Response(serializer.data)
 
-    # ViewSet for Offers
     def get_queryset(self):
         from django.db.models import Min
         qs = Offer.objects.filter(is_active=True)
@@ -59,10 +91,6 @@ class OfferViewSet(viewsets.ModelViewSet):
         ).filter(min_price__isnull=False, min_delivery_time__isnull=False)
         qs = qs.order_by('-updated_at', 'id')
         return qs
-    permission_classes = [permissions.AllowAny]
-    filterset_class = OfferFilterSet
-    search_fields = ['title', 'description']
-    ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
 
     def get_serializer_class(self):
         if self.action == 'list':
