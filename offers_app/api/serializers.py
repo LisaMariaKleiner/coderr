@@ -184,7 +184,11 @@ class OfferSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Ein Angebot muss mindestens 3 Details enthalten.")
         for detail in value:
             price = detail.get('price')
-            if price is None or float(price) <= 0:
+            try:
+                price_val = float(price)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError(f"Preis ist ungültig: {price!r}.")
+            if price_val <= 0:
                 raise serializers.ValidationError("Jedes Angebots-Detail muss einen Preis > 0 haben.")
         return value
     user = serializers.PrimaryKeyRelatedField(source='business_user', read_only=True)
