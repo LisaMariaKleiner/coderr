@@ -10,6 +10,13 @@ from rest_framework import status
 
 
 class OfferTests(APITestCase):
+    def test_offer_list_page_size_one(self):
+        url = reverse('offer-list')
+        response = self.client.get(url, {'page_size': 1})
+        print("[TEST-DEBUG] Response data:", response.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('results', response.data)
+        self.assertLessEqual(len(response.data['results']), 1)
     @classmethod
     def setUpTestData(cls):
         User = get_user_model()
