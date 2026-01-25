@@ -60,6 +60,11 @@ class OfferDetailUpdateSerializer(serializers.ModelSerializer):
 
 """Serializer for updating Offer along with its details"""
 class OfferUpdateSerializer(serializers.ModelSerializer):
+    def validate_details(self, value):
+        for detail in value:
+            if 'offer_type' not in detail or not detail['offer_type']:
+                raise serializers.ValidationError("Jedes Angebots-Detail muss ein offer_type enthalten.")
+        return value
     details = OfferDetailUpdateSerializer(many=True)
 
     class Meta:
@@ -74,11 +79,20 @@ class OfferUpdateSerializer(serializers.ModelSerializer):
         instance.save()
 
         if details_data is not None:
-            existing_details = {str(d.id): d for d in instance.details.all()}
+            # Erst nach ID, dann nach offer_type matchen
+            existing_details_by_id = {str(d.id): d for d in instance.details.all()}
+            existing_details_by_type = {d.offer_type: d for d in instance.details.all()}
             for detail in details_data:
                 detail_id = str(detail.get('id')) if detail.get('id') is not None else None
-                if detail_id and detail_id in existing_details:
-                    detail_instance = existing_details[detail_id]
+                offer_type = detail.get('offer_type')
+                if detail_id and detail_id in existing_details_by_id:
+                    detail_instance = existing_details_by_id[detail_id]
+                elif offer_type and offer_type in existing_details_by_type:
+                    detail_instance = existing_details_by_type[offer_type]
+                else:
+                    detail_instance = None
+
+                if detail_instance:
                     for attr, value in detail.items():
                         if attr not in ['id', 'offer']:
                             setattr(detail_instance, attr, value)
