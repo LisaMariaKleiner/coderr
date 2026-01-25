@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from offers_app.models import Offer
 from rest_framework import status
 
+
 class OfferTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -19,6 +20,33 @@ class OfferTests(APITestCase):
         offer1.details.create(title='Premium', revisions=2, delivery_time_in_days=10, price=300, features=["B"], offer_type='premium')
         offer2 = Offer.objects.create(business_user=cls.user2, title='Logo', description='Logo Design', is_active=True)
         offer2.details.create(title='Basic', revisions=1, delivery_time_in_days=3, price=300, features=["C"], offer_type='basic')
+
+    def test_offer_list_page_size(self):
+        url = reverse('offer-list')
+        response = self.client.get(url, {'page_size': 2})
+        self.assertEqual(response.status_code, 200)
+        self.assertLessEqual(len(response.data['results']), 2)
+
+    def test_offer_list_response_structure(self):
+        import decimal
+        url = reverse('offer-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_keys = {'count', 'next', 'previous', 'results'}
+        self.assertEqual(set(response.data.keys()), expected_keys)
+        self.assertIsInstance(response.data['count'], int)
+        self.assertIn('results', response.data)
+        self.assertIsInstance(response.data['results'], list)
+        results = response.data['results']
+        for offer in results:
+            offer_expected_keys = {
+                'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
+                'details', 'min_price', 'min_delivery_time'
+            }
+            # user_details ist optional, je nach Serializer
+            self.assertTrue(offer_expected_keys.issubset(set(offer.keys())))
+            self.assertIsInstance(offer['min_price'], (int, float, decimal.Decimal))
+            self.assertIsInstance(offer['min_delivery_time'], (int, float, decimal.Decimal))
 
     def test_offer_list_filter_creator_id(self):
         url = reverse('offer-list')
@@ -56,29 +84,3 @@ class OfferTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any('Web' in offer['title'] or 'Web' in offer['description'] for offer in response.data['results']))
 
-def test_offer_list_page_size(self):
-    url = reverse('offer-list')
-    response = self.client.get(url, {'page_size': 2})
-    self.assertEqual(response.status_code, 200)
-    self.assertLessEqual(len(response.data['results']), 2)
-
-def test_offer_list_response_structure(self):
-    import decimal
-    url = reverse('offer-list')
-    response = self.client.get(url)
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-    expected_keys = {'count', 'next', 'previous', 'results'}
-    self.assertEqual(set(response.data.keys()), expected_keys)
-    self.assertIsInstance(response.data['count'], int)
-    self.assertIn('results', response.data)
-    self.assertIsInstance(response.data['results'], list)
-    results = response.data['results']
-    for offer in results:
-        offer_expected_keys = {
-            'id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at',
-            'details', 'min_price', 'min_delivery_time'
-        }
-        # user_details ist optional, je nach Serializer
-        self.assertTrue(offer_expected_keys.issubset(set(offer.keys())))
-        self.assertIsInstance(offer['min_price'], (int, float, decimal.Decimal))
-        self.assertIsInstance(offer['min_delivery_time'], (int, float, decimal.Decimal))
