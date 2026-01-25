@@ -190,9 +190,13 @@ class OfferViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def my_offers(self, request):
-        """Get offers created by the current user"""
+        """Get offers created by the current user (paginated)"""
         if not request.user.is_authenticated:
             return Response({'detail': 'Authentication required.'}, status=401)
         offers = Offer.objects.filter(business_user=request.user)
+        page = self.paginate_queryset(offers)
+        if page is not None:
+            serializer = OfferSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = OfferSerializer(offers, many=True)
         return Response(serializer.data)
