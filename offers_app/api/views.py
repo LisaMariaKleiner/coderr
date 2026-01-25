@@ -2,13 +2,11 @@ from django_filters import rest_framework as filters
 
 from ..models import Offer, OfferDetail
 
-
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 
 
 
@@ -60,21 +58,15 @@ class OfferViewSet(viewsets.ModelViewSet):
         from rest_framework.response import Response
         return Response(status=204)
     pagination_class = PageNumberPagination
-    permission_classes = [permissions.IsAuthenticated, IsBusinessUserOrReadOnly]
+    permission_classes = [IsBusinessUserOrReadOnly]
+
+    def get_permissions(self):
+        if self.action == 'retrieve':
+            return [permissions.IsAuthenticated(), IsBusinessUserOrReadOnly()]
+        return [IsBusinessUserOrReadOnly()]
     filterset_class = OfferFilterSet
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'updated_at', 'min_price', 'min_delivery_time']
-    def list(self, request, *args, **kwargs):
-        """List offers with pagination support"""
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        print(f"[DEBUG] queryset count: {queryset.count()}")
-        if page is not None:
-            print(f"[DEBUG] page length: {len(page)}")
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         """get a single offer with full details"""
