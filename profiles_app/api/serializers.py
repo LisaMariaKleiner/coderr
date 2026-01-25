@@ -50,6 +50,25 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
+    def update(self, instance, validated_data):
+        user_data = {}
+        # first_name und last_name ggf. aus validated_data holen
+        if 'first_name' in self.initial_data:
+            user_data['first_name'] = self.initial_data['first_name']
+        if 'last_name' in self.initial_data:
+            user_data['last_name'] = self.initial_data['last_name']
+
+        # User-Objekt aktualisieren, falls nötig
+        if user_data:
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+            instance.user.save()
+
+        # Restliche Felder wie gewohnt aktualisieren
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
     """Business Profile Serializer"""
     username = serializers.CharField(source='user.username', read_only=True)
     email = serializers.EmailField(source='user.email', read_only=True)

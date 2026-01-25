@@ -4,6 +4,14 @@ from rest_framework import status
 from profiles_app.models import User, BusinessProfile
 
 class ProfileResponseAkzeptanzTests(APITestCase):
+    def test_patch_business_profile_updates_user_names(self):
+        url = reverse('profile-detail', kwargs={'pk': self.business_user.id})
+        data = {"first_name": "Dwighn", "last_name": "Schrute"}
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.business_user.refresh_from_db()
+        self.assertEqual(self.business_user.first_name, "Dwighn")
+        self.assertEqual(self.business_user.last_name, "Schrute")
     def setUp(self):
         self.business_user = User.objects.create_user(
             username='max_mustermann',
