@@ -1,53 +1,6 @@
 from rest_framework import serializers
 from ..models import User, BusinessProfile, CustomerProfile
 
-class ProfileDetailSerializer(serializers.Serializer):
-    user = serializers.IntegerField(source='user.id', read_only=True)
-    username = serializers.CharField(source='user.username', read_only=True)
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
-    file = serializers.SerializerMethodField()
-    location = serializers.SerializerMethodField()
-    tel = serializers.SerializerMethodField()
-    description = serializers.SerializerMethodField()
-    working_hours = serializers.SerializerMethodField()
-    type = serializers.SerializerMethodField()
-    email = serializers.EmailField(source='user.email', read_only=True)
-    created_at = serializers.DateTimeField(source='user.created_at', read_only=True)
-
-    def get_first_name(self, obj):
-        return getattr(obj, 'first_name', '')
-
-    def get_last_name(self, obj):
-        return getattr(obj, 'last_name', '')
-    
-    def get_location(self, obj):
-        return getattr(obj, 'location', '')
-
-    def get_file(self, obj):
-        return getattr(obj, 'profile_image', None).name if getattr(obj, 'profile_image', None) else None
-
-    def get_tel(self, obj):
-        return getattr(obj, 'phone', '')
-
-    def get_description(self, obj):
-        return getattr(obj, 'description', '')
-
-    def get_working_hours(self, obj):
-        return getattr(obj, 'working_hours', '')
-
-    def get_type(self, obj):
-        if hasattr(obj, 'company_name'):
-            return 'business'
-        return 'customer'
-
-class UserSerializer(serializers.ModelSerializer):
-    """Basic User Serializer"""
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'user_type', 'created_at']
-        read_only_fields = ['id', 'created_at']
-
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
@@ -167,80 +120,76 @@ class CustomerProfileListSerializer(serializers.Serializer):
 
 class ProfileDetailSerializer(serializers.Serializer):
     """
-    Profile Detail Serializer for GET /api/profile/{pk}/
-    Unified response for both customer and business profiles
+    Vereinheitlichter Profile Detail Serializer für GET /api/profile/{pk}/
+    Holt User-Daten immer aus dem verknüpften User-Objekt, Profildaten aus dem jeweiligen Profilobjekt.
+    Gibt für Business- und Customer-Profile alle Felder zurück, Felder sind nie null, sondern mindestens leerer String.
     """
-    user = serializers.IntegerField(read_only=True)
-    username = serializers.CharField(read_only=True)
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    file = serializers.SerializerMethodField()
-    location = serializers.CharField(read_only=True)
-    tel = serializers.CharField(read_only=True)
-    description = serializers.CharField(read_only=True)
-    working_hours = serializers.CharField(read_only=True)
-    type = serializers.CharField(read_only=True)
-    email = serializers.EmailField(read_only=True)
-    created_at = serializers.SerializerMethodField()
+    def to_representation(self, instance):
+        def safe_str(val):
+            return val if val is not None else ''
 
-    def get_file(self, obj):
-        """Get profile image URL"""
-        if hasattr(obj, 'profile_image'):
-            return obj.profile_image.url if obj.profile_image else None
-        return None
+        user = getattr(instance, 'user', None)
+        if user is None:
+            user = instance
 
-    def get_created_at(self, obj):
+        user_type = getattr(user, 'user_type', None)
+        if user_type == 'business':
+            profile = getattr(user, 'business_profile', None)
+            typ = 'business'
+        elif user_type == 'customer':
+            profile = getattr(user, 'customer_profile', None)
+            typ = 'customer'
+        else:
+            profile = None
+            typ = ''
+
+        username = safe_str(getattr(user, 'username', ''))
+        email = safe_str(getattr(user, 'email', ''))
+        first_name = safe_str(getattr(user, 'first_name', ''))
+        last_name = safe_str(getattr(user, 'last_name', ''))
+        user_id = getattr(user, 'id', None)
+
+        if profile:
+            if typ == 'customer':
+                first_name = safe_str(getattr(profile, 'first_name', first_name))
+                last_name = safe_str(getattr(profile, 'last_name', last_name))
+            file_url = profile.profile_image.url if getattr(profile, 'profile_image', None) else None
+            location = safe_str(getattr(profile, 'location', ''))
+            tel = safe_str(getattr(profile, 'phone', ''))
+            description = safe_str(getattr(profile, 'description', ''))
+            working_hours = safe_str(getattr(profile, 'working_hours', ''))
+        else:
+            file_url = None
+            location = ''
+            tel = ''
+            description = ''
+            working_hours = ''
+
+        # created_at (User oder Profil)
         import pytz
-        from django.utils import timezone
-        dt = getattr(obj, 'date_joined', None) or getattr(obj, 'created_at', None)
+        dt = getattr(user, 'date_joined', None) or getattr(user, 'created_at', None)
+        if not dt and profile:
+            dt = getattr(profile, 'created_at', None)
         if dt:
             dt = dt.astimezone(pytz.UTC).replace(microsecond=0)
-            return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-        return ''
-
-    def to_representation(self, instance):
-        """
-        Gibt für Business-Profile alle Felder, für Customer-Profile nur die erlaubten Felder zurück.
-        Alle Felder sind nie null, sondern immer mindestens ein leerer String.
-        """
-        if hasattr(instance, 'user') and getattr(instance.user, 'user_type', None) == 'business':
-            profile = getattr(instance, 'business_profile', None)
-            def safe_str(val):
-                return val if val is not None else ''
-            data = {
-                'user': instance.id,
-                'username': safe_str(getattr(instance, 'username', '')),
-                'first_name': safe_str(getattr(instance, 'first_name', '')),
-                'last_name': safe_str(getattr(instance, 'last_name', '')),
-                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
-                'location': safe_str(getattr(profile, 'location', '')),
-                'tel': safe_str(getattr(profile, 'phone', '')),
-                'description': safe_str(getattr(profile, 'description', '')),
-                'working_hours': safe_str(getattr(profile, 'working_hours', '')),
-                'type': safe_str(getattr(instance, 'user_type', '')),
-                'email': safe_str(getattr(instance, 'email', '')),
-                'created_at': self.get_created_at(instance),
-            }
-            return data
+            created_at = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
         else:
-            profile = getattr(instance, 'customer_profile', None)
-            def safe_str(val):
-                return val if val is not None else ''
-            data = {
-                'user': instance.id,
-                'username': safe_str(getattr(instance, 'username', '')),
-                'first_name': safe_str(getattr(profile, 'first_name', '')),
-                'last_name': safe_str(getattr(profile, 'last_name', '')),
-                'file': getattr(profile, 'profile_image', None).url if profile and getattr(profile, 'profile_image', None) else None,
-                'location': safe_str(getattr(profile, 'location', '')),
-                'tel': safe_str(getattr(profile, 'phone', '')),
-                'description': safe_str(getattr(profile, 'description', '')),
-                'working_hours': safe_str(getattr(profile, 'working_hours', '')),
-                'type': safe_str(getattr(instance, 'user_type', '')),
-                'email': safe_str(getattr(instance, 'email', '')),
-                'created_at': self.get_created_at(instance),
-            }
-            return data
+            created_at = ''
+
+        return {
+            'user': user_id,
+            'username': username,
+            'first_name': first_name,
+            'last_name': last_name,
+            'file': file_url,
+            'location': location,
+            'tel': tel,
+            'description': description,
+            'working_hours': working_hours,
+            'type': typ,
+            'email': email,
+            'created_at': created_at,
+        }
 
 
 class ProfileUpdateSerializer(serializers.Serializer):
@@ -266,11 +215,11 @@ class ProfileUpdateSerializer(serializers.Serializer):
         instance = User object
         """
         user = instance
-        # User-Felder
         if 'first_name' in validated_data and validated_data['first_name'] != '':
             user.first_name = validated_data['first_name']
         if 'last_name' in validated_data and validated_data['last_name'] != '':
             user.last_name = validated_data['last_name']
+
         if 'email' in validated_data and validated_data['email'] != '':
             user.email = validated_data['email']
         user.save()
@@ -296,10 +245,15 @@ class ProfileUpdateSerializer(serializers.Serializer):
                 if 'working_hours' in validated_data and validated_data['working_hours'] != '':
                     profile.working_hours = validated_data['working_hours']
             elif user.user_type == 'customer':
+                # Synchronisiere Namen auch im Profil
                 if 'first_name' in validated_data and validated_data['first_name'] != '':
                     profile.first_name = validated_data['first_name']
+                else:
+                    profile.first_name = user.first_name
                 if 'last_name' in validated_data and validated_data['last_name'] != '':
                     profile.last_name = validated_data['last_name']
+                else:
+                    profile.last_name = user.last_name
                 if 'tel' in validated_data and validated_data['tel'] != '':
                     profile.phone = validated_data['tel']
                 if 'location' in validated_data and validated_data['location'] != '':
