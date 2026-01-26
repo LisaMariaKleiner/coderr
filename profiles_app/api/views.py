@@ -36,14 +36,12 @@ class ProfileViewSet(viewsets.ViewSet):
                     profile = user.business_profile
                 elif user.user_type == 'customer':
                     profile = user.customer_profile
-                    serializer = ProfileDetailSerializer(profile)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-            except (BusinessProfile.DoesNotExist, CustomerProfile.DoesNotExist):
-                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
                 serializer = ProfileDetailSerializer(profile)
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            except (BusinessProfile.DoesNotExist, CustomerProfile.DoesNotExist):
+                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
-            return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     def partial_update(self, request, pk=None):
         """
