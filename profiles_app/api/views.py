@@ -36,13 +36,12 @@ class ProfileViewSet(viewsets.ViewSet):
                     profile = user.business_profile
                 elif user.user_type == 'customer':
                     profile = user.customer_profile
-                user = profile.user
-                serializer = ProfileDetailSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                    serializer = ProfileDetailSerializer(profile)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
             except (BusinessProfile.DoesNotExist, CustomerProfile.DoesNotExist):
                 return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-            serializer = ProfileDetailSerializer(profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+                serializer = ProfileDetailSerializer(profile)
+                return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'detail': 'User profile not found.'}, status=status.HTTP_404_NOT_FOUND)
 
