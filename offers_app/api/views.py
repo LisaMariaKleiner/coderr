@@ -40,18 +40,20 @@ class OfferDetailRetrieveViewSet(mixins.RetrieveModelMixin, viewsets.GenericView
 
 class OfferViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
-            # 1. Authentifizierung prüfen
+        from rest_framework.exceptions import NotFound
+        from django.http import Http404
+        # 1. Authentifizierung prüfen
         if not request.user.is_authenticated:
             raise NotAuthenticated("Authentication credentials were not provided.")
-            # 2. Business-User prüfen
+        # 2. Business-User prüfen
         if getattr(request.user, 'user_type', None) != 'business':
             raise PermissionDenied("Nur Business-User dürfen Angebote löschen.")
-            # 3. Objekt suchen
+        # 3. Objekt suchen
         try:
             instance = self.get_object()
-        except self.queryset.model.DoesNotExist:
+        except (self.queryset.model.DoesNotExist, Http404):
             raise NotFound("Angebot nicht gefunden.")
-            # 4. Ownership prüfen
+        # 4. Ownership prüfen
         if instance.business_user != request.user:
             raise PermissionDenied("Nur der Ersteller darf dieses Angebot löschen.")
         self.perform_destroy(instance)
