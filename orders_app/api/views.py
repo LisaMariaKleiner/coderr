@@ -12,6 +12,25 @@ from rest_framework.pagination import PageNumberPagination
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    def update(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=401)
+        order = self.get_object()
+        # Nur Admin oder zugehöriger Business-User darf updaten
+        if not (user.is_staff or (hasattr(order, 'business') and order.business == user)):
+            return Response({'detail': 'Only the business user or admin can update orders.'}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'detail': 'Authentication required.'}, status=401)
+        order = self.get_object()
+        # Nur Admin oder zugehöriger Business-User darf updaten
+        if not (user.is_staff or (hasattr(order, 'business') and order.business == user)):
+            return Response({'detail': 'Only the business user or admin can update orders.'}, status=403)
+        return super().partial_update(request, *args, **kwargs)
 
     pagination_class = None
 
