@@ -20,37 +20,37 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response([serializer.data])
+        return Response([serializer.data], content_type="application/json")
 
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
         except Exception:
-            return Response({'detail': 'Nicht gefunden. Es wurde keine Bewertung mit der angegebenen ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Nicht gefunden. Es wurde keine Bewertung mit der angegebenen ID gefunden.'}, status=status.HTTP_404_NOT_FOUND, content_type="application/json")
 
         user = request.user
         if not user.is_authenticated:
-            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein.'}, status=status.HTTP_401_UNAUTHORIZED, content_type="application/json")
 
         if instance.reviewer != user:
-            return Response({'detail': 'Forbidden. Der Benutzer ist nicht berechtigt, diese Bewertung zu löschen.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Forbidden. Der Benutzer ist nicht berechtigt, diese Bewertung zu löschen.'}, status=status.HTTP_403_FORBIDDEN, content_type="application/json")
 
         instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT, content_type="application/json")
 
     def partial_update(self, request, *args, **kwargs):
         """Allows only the creator to edit rating and description (comment)"""
         try:
             instance = self.get_object()
         except Exception:
-            return Response({'detail': 'Nicht gefunden. Es wurde keine Bewertung mit der angegebenen ID gefunden.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Nicht gefunden. Es wurde keine Bewertung mit der angegebenen ID gefunden.'}, status=status.HTTP_404_NOT_FOUND, content_type="application/json")
         user = request.user
 
         if not user.is_authenticated:
-            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein.'}, status=status.HTTP_401_UNAUTHORIZED, content_type="application/json")
 
         if instance.reviewer != user:
-            return Response({'detail': 'Forbidden. Der Benutzer ist nicht berechtigt, diese Bewertung zu bearbeiten.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Forbidden. Der Benutzer ist nicht berechtigt, diese Bewertung zu bearbeiten.'}, status=status.HTTP_403_FORBIDDEN, content_type="application/json")
 
         data = request.data
         allowed_fields = {'rating', 'description'}

@@ -37,11 +37,11 @@ class ProfileViewSet(viewsets.ViewSet):
                 elif user.user_type == 'customer':
                     profile = user.customer_profile
                 serializer = ProfileDetailSerializer(profile)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.data, status=status.HTTP_200_OK, content_type="application/json")
             except (BusinessProfile.DoesNotExist, CustomerProfile.DoesNotExist):
-                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND, content_type="application/json")
         except User.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND, content_type="application/json")
 
     def partial_update(self, request, pk=None):
         """
@@ -79,17 +79,19 @@ class ProfileViewSet(viewsets.ViewSet):
                 # User-Objekt nach dem Speichern neu laden, damit Response garantiert aktuell ist
                 user = User.objects.get(pk=pk)
                 response_serializer = ProfileUpdateSerializer(user)
-                return Response(response_serializer.data, status=status.HTTP_200_OK)
-            return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(response_serializer.data, status=status.HTTP_200_OK, content_type="application/json")
+            return Response(update_serializer.errors, status=status.HTTP_400_BAD_REQUEST, content_type="application/json")
         except User.DoesNotExist:
             return Response(
                 {'detail': 'User profile not found.'}, 
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_404_NOT_FOUND,
+                content_type="application/json"
             )
         except Exception as e:
             return Response(
                 {'detail': 'Internal server error occurred.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content_type="application/json"
             )
 
 
@@ -112,11 +114,12 @@ class BusinessProfileViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             queryset = self.get_queryset()
             serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK, content_type="application/json")
         except Exception as e:
             return Response(
                 {'detail': 'Internal server error occurred.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content_type="application/json"
             )
 
     @action(detail=False, methods=['get'])
