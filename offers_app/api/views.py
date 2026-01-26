@@ -56,8 +56,8 @@ class OfferViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Nur der Ersteller darf dieses Angebot löschen.")
         self.perform_destroy(instance)
         from rest_framework.response import Response
-        return Response(status=204)
-    pagination_class = PageNumberPagination
+        # Leerer JSON-Body und Content-Type application/json für externe Tests
+        return Response({}, status=200, content_type="application/json")
     permission_classes = [IsBusinessUserOrReadOnly]
 
     def get_permissions(self):
