@@ -98,9 +98,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """Erstellt eine neue Bewertung für einen Geschäftsbenutzer (nur Kunden, nur eine Bewertung pro Geschäftsprofil)"""
         user = request.user
         if not user.is_authenticated:
-            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein.'}, status=status.HTTP_401_UNAUTHORIZED)
         if not hasattr(user, 'user_type') or user.user_type != 'customer':
-            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Forbidden. Nur Kunden dürfen Bewertungen schreiben.'}, status=status.HTTP_403_FORBIDDEN)
 
         business_user_id = request.data.get('business_user')
         rating = request.data.get('rating')
