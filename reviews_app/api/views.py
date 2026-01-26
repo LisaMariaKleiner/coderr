@@ -1,10 +1,10 @@
 from rest_framework import status, viewsets, permissions
 from rest_framework.response import Response
-
 from ..models import Review
 from .serializers import ReviewSerializer
-from offers_app.models import Offer
 from .permissions import IsReviewerOrReadOnly
+from offers_app.models import Offer
+
 
 
 
@@ -95,31 +95,30 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        """Override create to handle duplicate reviews and permissions"""
+        """Erstellt eine neue Bewertung für einen Geschäftsbenutzer (nur Kunden, nur eine Bewertung pro Geschäftsprofil)"""
         user = request.user
-
         if not user.is_authenticated:
-            return Response({'detail': 'Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        if not hasattr(user, 'customer_profile'):
-            return Response({'detail': 'Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        if hasattr(user, 'businessprofile'):
-            return Response({'detail': 'Mit einem Geschäftsprofil dürfen keine Bewertungen abgegeben werden.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
+        if not hasattr(user, 'user_type') or user.user_type != 'customer':
+            return Response({'detail': 'Unauthorized. Der Benutzer muss authentifiziert sein und ein Kundenprofil besitzen.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         business_user_id = request.data.get('business_user')
         rating = request.data.get('rating')
         description = request.data.get('description')
-        if not business_user_id or not rating or not description:
+        if not business_user_id or rating is None or description is None:
             return Response({'detail': 'business_user, rating und description sind erforderlich.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        offer = Offer.objects.filter(business_user_id=business_user_id).first()
-        if not offer:
+        # Hole alle Angebote dieses Geschäftsbenutzers
+        offers = Offer.objects.filter(business_user_id=business_user_id)
+        if not offers.exists():
             return Response({'detail': 'Kein Angebot für diesen Geschäftsbenutzer gefunden.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Prüfe, ob der User schon für eines der Angebote dieses Geschäftsbenutzers eine Bewertung abgegeben hat
         if Review.objects.filter(offer__business_user_id=business_user_id, reviewer=user).exists():
-            return Response({'detail': 'Der Benutzer hat möglicherweise bereits eine Bewertung für das gleiche Geschäftsprofil abgegeben.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Forbidden. Ein Benutzer kann nur eine Bewertung pro Geschäftsprofil abgeben.'}, status=status.HTTP_403_FORBIDDEN)
 
+        # Nimm das erste Angebot für die Bewertung (Modell verlangt offer)
+        offer = offers.first()
         review = Review.objects.create(
             offer=offer,
             reviewer=user,
