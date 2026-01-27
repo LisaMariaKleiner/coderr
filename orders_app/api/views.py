@@ -3,12 +3,16 @@ from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from ..models import Order
+from rest_framework import serializers
+
 from .serializers import (
     OrderListSerializer, OrderCreateResponseSerializer, OrderCreateRequestSerializer,
     OrderStatusUpdateRequestSerializer, OrderStatusUpdateResponseSerializer, OrderCountResponseSerializer
 )
-from offers_app.models import OfferDetail
+from offers_app.models import Offer, OfferDetail
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -239,3 +243,34 @@ class OrderViewSet(viewsets.ModelViewSet):
         }
         serializer = OrderCreateResponseSerializer(response_data)
         return Response(serializer.data, status=201)
+    
+class OrderCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, business_user_id):
+        User = get_user_model()
+        try:
+            business_user = User.objects.get(id=business_user_id, user_type='business')
+        except User.DoesNotExist:
+            return Response({'detail': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=404)
+        count = Order.objects.filter(business=business_user, status='in_progress').count()
+        serializer = OrderCountResponseSerializer({'order_count': count})
+        return Response(serializer.data, status=200)
+    
+class CompletedOrderCountResponseSerializer(serializers.Serializer):
+    """Serializer for completed order count response"""
+    completed_order_count = serializers.IntegerField()
+
+class CompletedOrderCountView(APIView):
+    """API View to get the count of completed orders for a business user"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, business_user_id):
+        User = get_user_model()
+        try:
+            business_user = User.objects.get(id=business_user_id, user_type='business')
+        except User.DoesNotExist:
+            return Response({'detail': 'Kein Geschäftsnutzer mit dieser ID gefunden.'}, status=404)
+        count = Order.objects.filter(business=business_user, status='completed').count()
+        serializer = CompletedOrderCountResponseSerializer({'completed_order_count': count})
+        return Response(serializer.data, status=200)
