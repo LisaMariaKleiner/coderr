@@ -1,24 +1,17 @@
 from django_filters import rest_framework as filters
 
-from ..models import Offer, OfferDetail
 
 from rest_framework import viewsets, permissions, mixins
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 
-
-
-from rest_framework.exceptions import NotFound
-
-from ..models import Offer, OfferDetail
+from offers_app.models import Offer, OfferDetail
 from .serializers import (
-    OfferSerializer, OfferCompactSerializer, OfferListSerializer, OfferUpdateSerializer,
+    OfferSerializer, OfferListSerializer, OfferUpdateSerializer,
     OfferRetrieveFullSerializer, OfferDetailSerializer
 )
 from .permissions import IsBusinessUserOrReadOnly
-
 
 class OfferFilterSet(filters.FilterSet):
     creator_id = filters.NumberFilter(field_name='business_user__id')
@@ -42,23 +35,20 @@ class OfferViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         from rest_framework.exceptions import NotFound
         from django.http import Http404
-        # 1. Authentifizierung prüfen
         if not request.user.is_authenticated:
             raise NotAuthenticated("Authentication credentials were not provided.")
-        # 2. Business-User prüfen
         if getattr(request.user, 'user_type', None) != 'business':
             raise PermissionDenied("Nur Business-User dürfen Angebote löschen.")
-        # 3. Objekt suchen
         try:
             instance = self.get_object()
-        except (self.queryset.model.DoesNotExist, Http404):
+        except (Offer.DoesNotExist, Http404, AttributeError):
             raise NotFound("Angebot nicht gefunden.")
-        # 4. Ownership prüfen
+        if instance is None:
+            raise NotFound("Angebot nicht gefunden.")
         if instance.business_user != request.user:
             raise PermissionDenied("Nur der Ersteller darf dieses Angebot löschen.")
         self.perform_destroy(instance)
         from rest_framework.response import Response
-        # Leerer JSON-Body und Content-Type application/json für externe Tests
         return Response({}, status=200, content_type="application/json")
     permission_classes = [IsBusinessUserOrReadOnly]
 
